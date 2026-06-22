@@ -68,6 +68,8 @@ export const DEFAULT_OUTPUT = {
   outputRouteStatus: 'default'
 };
 
+export const PRIMARY_MASTER_PRESET_IDS = ['pro-music', 'movie-dolby', 'podcast'];
+
 function p({ id, name, description, eq = DEFAULT_EQ_BANDS, compressor = {}, color = {}, width = {}, output = {} }) {
   return {
     id,
@@ -94,7 +96,7 @@ export const FACTORY_PRESETS = [
   }),
   p({
     id: 'pro-music',
-    name: 'Pro Music',
+    name: 'Music',
     description: 'Punchy bass, thick mids and sparkling detail for music.',
     eq: [
       { ...DEFAULT_EQ_BANDS[0], frequency: 28, slope: 24 },
@@ -112,22 +114,23 @@ export const FACTORY_PRESETS = [
   }),
   p({
     id: 'movie-dolby',
-    name: 'Movie Dolby',
-    description: 'Thick cinematic bass, clear dialog and detailed treble.',
+    name: 'Movie',
+    description: 'Cinematic width with cleaner dialog, controlled low-mid and natural impact.',
     eq: [
-      { ...DEFAULT_EQ_BANDS[0], frequency: 26, slope: 24 },
-      { ...DEFAULT_EQ_BANDS[1], frequency: 72, gain: 2.5 },
-      { id: 'impact', label: 'Impact', type: 'bell', frequency: 155, gain: 0.8, q: 0.8, slope: 12, enabled: true },
-      { ...DEFAULT_EQ_BANDS[2], frequency: 320, gain: -1.7, q: 1.05 },
-      { ...DEFAULT_EQ_BANDS[3], frequency: 1650, gain: 1.2, q: 1.0 },
-      { ...DEFAULT_EQ_BANDS[4], frequency: 3900, gain: 1.4, q: 1.15 },
-      { id: 'treble-detail', label: 'Treble Detail', type: 'bell', frequency: 7200, gain: 1.1, q: 1.1, slope: 12, enabled: true },
-      { ...DEFAULT_EQ_BANDS[5], frequency: 12500, gain: 1.1 }
+      { ...DEFAULT_EQ_BANDS[0], frequency: 32, slope: 24 },
+      { ...DEFAULT_EQ_BANDS[1], frequency: 76, gain: 1.2 },
+      { id: 'impact', label: 'Impact', type: 'bell', frequency: 125, gain: 0.4, q: 0.85, slope: 12, enabled: true },
+      { id: 'box-clean', label: 'Box Clean', type: 'bell', frequency: 360, gain: -2.3, q: 1.1, slope: 12, enabled: true },
+      { id: 'dialog-body-balance', label: 'Body Balance', type: 'bell', frequency: 620, gain: -0.9, q: 1.0, slope: 12, enabled: true },
+      { ...DEFAULT_EQ_BANDS[3], frequency: 2100, gain: 1.0, q: 1.0 },
+      { ...DEFAULT_EQ_BANDS[4], frequency: 4700, gain: 1.1, q: 1.15 },
+      { id: 'treble-detail', label: 'Treble Detail', type: 'bell', frequency: 7600, gain: 0.5, q: 1.1, slope: 12, enabled: true },
+      { ...DEFAULT_EQ_BANDS[5], frequency: 11800, gain: 0.7 }
     ],
-    compressor: { threshold: -24, ratio: 1.8, knee: 18, attack: 0.026, release: 0.2, makeupGain: 0.9, parallelMix: 96 },
-    color: { enabled: true, drive: 4.8, body: 24, warmth: 12, harmonics: 22, air: 10, mix: 30, mode: 'modern' },
-    width: { enabled: true, width: 132, monoBass: true, monoBassFreq: 150, sideTone: 5 },
-    output: { outputGain: -2.2, limiterDrive: 0.7, limiterCeiling: -1.2 }
+    compressor: { threshold: -24, ratio: 1.55, knee: 18, attack: 0.03, release: 0.24, makeupGain: 0.35, parallelMix: 90 },
+    color: { enabled: true, drive: 2.2, body: 8, warmth: 5, harmonics: 10, air: 7, mix: 14, mode: 'warm' },
+    width: { enabled: true, width: 112, monoBass: true, monoBassFreq: 140, sideTone: 1.5 },
+    output: { outputGain: -1.4, limiterDrive: 0.2, limiterCeiling: -1.1 }
   }),
   p({
     id: 'podcast',
@@ -240,20 +243,20 @@ export const MODULE_PRESETS = {
     { id: 'warm-tape', name: 'Warm Tape', color: DEFAULT_COLOR },
     { id: 'clean-glow', name: 'Clean Glow', color: { enabled: true, drive: 1.6, body: 4, warmth: 3, harmonics: 8, air: 4, mix: 12, mode: 'clean' } },
     { id: 'modern-exciter', name: 'Modern Exciter', color: { enabled: true, drive: 4.2, body: 8, warmth: 5, harmonics: 28, air: 16, mix: 26, mode: 'modern' } },
-    { id: 'thick-sweet', name: 'Thick Sweet', color: { enabled: true, drive: 4.8, body: 24, warmth: 12, harmonics: 22, air: 10, mix: 30, mode: 'modern' } },
+    { id: 'thick-sweet', name: 'Soft Cinema', color: { enabled: true, drive: 2.4, body: 8, warmth: 5, harmonics: 10, air: 7, mix: 15, mode: 'warm' } },
     { id: 'night-warm', name: 'Night Warm', color: { enabled: true, drive: 1.4, body: -6, warmth: 7, harmonics: 2, air: -10, mix: 10, mode: 'warm' } }
   ],
   width: [
     { id: 'natural-stereo', name: 'Natural Stereo', width: DEFAULT_WIDTH },
     { id: 'wide-music', name: 'Wide Music', width: { enabled: true, width: 118, monoBass: true, monoBassFreq: 130, sideTone: 3 } },
-    { id: 'cinema-wide', name: 'Cinema Wide', width: { enabled: true, width: 132, monoBass: true, monoBassFreq: 150, sideTone: 5 } },
+    { id: 'cinema-wide', name: 'Cinema Safe', width: { enabled: true, width: 114, monoBass: true, monoBassFreq: 140, sideTone: 1.8 } },
     { id: 'vocal-center', name: 'Vocal Center', width: { enabled: false, width: 100, monoBass: true, monoBassFreq: 120, sideTone: 0 } },
     { id: 'night-narrow', name: 'Night Narrow', width: { enabled: false, width: 102, monoBass: true, monoBassFreq: 120, sideTone: -1 } }
   ],
   limiter: [
     { id: 'safe-master', name: 'Safe Master', output: { inputGain: 0, outputGain: -1.5, limiterEnabled: true, limiterCeiling: -1, limiterDrive: 0.4, punchProtect: true } },
     { id: 'loud-punch', name: 'Loud Punch', output: { inputGain: 0, outputGain: -1.8, limiterEnabled: true, limiterCeiling: -1, limiterDrive: 0.8, punchProtect: true } },
-    { id: 'cinema-headroom', name: 'Cinema Headroom', output: { inputGain: 0, outputGain: -2.2, limiterEnabled: true, limiterCeiling: -1.2, limiterDrive: 0.7, punchProtect: true } },
+    { id: 'cinema-headroom', name: 'Cinema Clean', output: { inputGain: 0, outputGain: -1.4, limiterEnabled: true, limiterCeiling: -1.1, limiterDrive: 0.2, punchProtect: true } },
     { id: 'voice-steady', name: 'Voice Steady', output: { inputGain: 0.6, outputGain: -1.4, limiterEnabled: true, limiterCeiling: -1, limiterDrive: 0.4, punchProtect: true } },
     { id: 'night-low', name: 'Night Low', output: { inputGain: -1, outputGain: -5, limiterEnabled: true, limiterCeiling: -1.5, limiterDrive: 0.1, punchProtect: true } }
   ]
@@ -344,17 +347,18 @@ export function normalizeOutput(output = {}) {
 }
 
 export function createDefaultState() {
+  const startupPreset = FACTORY_PRESETS.find((preset) => preset.id === 'pro-music') || FACTORY_PRESETS[0];
   return {
     active: false,
     tabId: null,
     sourceTitle: 'No active capture',
-    selectedPresetId: 'default',
-    eqEnabled: true,
-    eq: normalizeEqBands(DEFAULT_EQ_BANDS),
-    compressor: normalizeCompressor(DEFAULT_COMPRESSOR),
-    color: normalizeColor(DEFAULT_COLOR),
-    width: normalizeWidth(DEFAULT_WIDTH),
-    output: normalizeOutput(DEFAULT_OUTPUT),
+    selectedPresetId: startupPreset.id,
+    eqEnabled: startupPreset.eqEnabled !== false,
+    eq: normalizeEqBands(startupPreset.eq),
+    compressor: normalizeCompressor(startupPreset.compressor),
+    color: normalizeColor(startupPreset.color),
+    width: normalizeWidth(startupPreset.width),
+    output: normalizeOutput(startupPreset.output),
     meters: {
       inputPeak: 0,
       outputPeak: 0,

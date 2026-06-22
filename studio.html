@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AR Audio Enhancer Studio</title>
+  <title>ArSonKuPik Studio</title>
   <link rel="stylesheet" href="src/studio/studio.css">
 </head>
 <body>
@@ -16,8 +16,8 @@
           </svg>
         </div>
         <div class="brand-text">
-          <b>AR Audio Enhancer</b>
-          <span>Mastering Chain · EQ · Comp · Color · Width · Limit</span>
+          <b class="brand-word"><span class="brand-arson">ArSon</span><span class="brand-kupik">KuPik</span></b>
+          <span>Mastering chain</span>
         </div>
       </div>
 
@@ -34,16 +34,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h1"/></svg>
         </button>
         <button class="btn" id="btnBypass" type="button" title="Bypass full processing">Bypass</button>
-        <button class="btn" id="btnReset" type="button" title="Reset to Default preset">Reset</button>
-        <button class="btn" id="btnSave" type="button" title="Save custom preset">Save</button>
       </div>
     </header>
 
     <section class="rack-row" id="presets" aria-label="Active mastering chain">
-      <label class="chain-preset">
-        <span>Master Preset</span>
-        <select id="masterPresetSelect" aria-label="Master preset for all FX"></select>
-      </label>
       <div class="chain-flow" aria-label="Signal flow">
         <span class="chain-label">Chain</span>
         <span class="smart-gain-pill" id="smartGainChip">Smart <strong>0.0 dB</strong></span>
@@ -57,16 +51,23 @@
         <span class="rack-arrow">&rarr;</span>
         <button class="rack-node on" data-jump="limiter" type="button" aria-pressed="true">LIMITER</button>
       </div>
-      <label class="top-output-device">
-        <span>Output Device</span>
-        <select id="topOutputDeviceSelect" aria-label="Output audio device"></select>
-        <small id="topOutputDeviceHint">Auto-detecting…</small>
-      </label>
+      <div class="chain-actions">
+        <label class="chain-preset">
+          <span>Master</span>
+          <select id="masterPresetSelect" aria-label="Master preset for all FX"></select>
+        </label>
+        <button class="preset-icon" id="btnReset" type="button" title="Reset to Music preset" aria-label="Reset preset">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 4v6h6"/></svg>
+        </button>
+        <button class="preset-icon" id="btnSave" type="button" title="Save custom preset" aria-label="Save preset">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3"/><path d="M8 21v-7h8v7"/></svg>
+        </button>
+      </div>
     </section>
 
     <section class="display-wrap" data-spectrum-view="post">
       <div class="eq-card-head">
-        <div>
+        <div class="eq-title-block">
           <span class="lbl">Equalizer</span>
           <h2>Precision parametric EQ</h2>
         </div>
@@ -75,6 +76,11 @@
             <span>Preset</span>
             <select id="eqPresetSelect" data-plugin-preset="eq" aria-label="EQ preset"></select>
           </label>
+          <div class="spectrum-toolbar" id="spectrumToolbar" aria-label="Spectrum monitor mode">
+            <span>Spectrum</span>
+            <button class="spectrum-mode-btn" data-spectrum-mode="pre" type="button" aria-pressed="false" title="Read input spectrum before processing">PRE</button>
+            <button class="spectrum-mode-btn on" data-spectrum-mode="post" type="button" aria-pressed="true" title="Read output spectrum after processing">POST</button>
+          </div>
           <button class="module-bypass" id="bypassEq" type="button" aria-pressed="true">ON</button>
         </div>
       </div>
@@ -86,11 +92,6 @@
         </div>
         <div class="meter-letters"><span>L</span><span>R</span></div>
         <strong id="inputMeterReadout">-inf</strong>
-      </div>
-      <div class="spectrum-toolbar" id="spectrumToolbar" aria-label="Spectrum monitor mode">
-        <span>Spectrum</span>
-        <button class="spectrum-mode-btn" data-spectrum-mode="pre" type="button" aria-pressed="false" title="Read input spectrum before processing">PRE</button>
-        <button class="spectrum-mode-btn on" data-spectrum-mode="post" type="button" aria-pressed="true" title="Read output spectrum after processing">POST</button>
       </div>
       <svg class="display" id="svg" preserveAspectRatio="none" aria-label="Interactive parametric equalizer graph"></svg>
       <div class="side-meter side-meter-output" aria-label="Global output audio stereo level meter">

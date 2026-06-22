@@ -107,9 +107,16 @@ function renderPresets() {
   const quickPresets = QUICK_PRESET_IDS
     .map((id) => presets.find((preset) => preset.id === id))
     .filter(Boolean);
-  const desired = quickPresets.map((preset) => preset.id).join('|');
+  const selectedIsQuick = quickPresets.some((preset) => preset.id === state.selectedPresetId);
+  const desired = quickPresets.map((preset) => preset.id).join('|') + `|${selectedIsQuick ? '' : state.selectedPresetId || 'custom'}`;
   if (ui.presetSelect.dataset.optionIds !== desired) {
     ui.presetSelect.innerHTML = '';
+    if (!selectedIsQuick) {
+      const custom = document.createElement('option');
+      custom.value = '';
+      custom.textContent = 'Custom / Edited';
+      ui.presetSelect.appendChild(custom);
+    }
     for (const preset of quickPresets) {
       const option = document.createElement('option');
       option.value = preset.id;
@@ -119,11 +126,7 @@ function renderPresets() {
     }
     ui.presetSelect.dataset.optionIds = desired;
   }
-  if (quickPresets.some((preset) => preset.id === state.selectedPresetId)) {
-    ui.presetSelect.value = state.selectedPresetId;
-  } else if (ui.presetSelect.options.length) {
-    ui.presetSelect.selectedIndex = 0;
-  }
+  ui.presetSelect.value = selectedIsQuick ? state.selectedPresetId : '';
 }
 
 function setHint(message) {

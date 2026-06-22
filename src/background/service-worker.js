@@ -90,7 +90,11 @@ async function getStateWithPresets() {
   lastState = prepareStateForStorage({ ...createDefaultState(), ...(stored[STORE_KEYS.state] || lastState) });
   const availablePresets = [...FACTORY_PRESETS, ...customPresets];
   if (!availablePresets.some((preset) => preset.id === lastState.selectedPresetId)) {
-    lastState = prepareStateForStorage(applyPresetToState(lastState, FACTORY_PRESETS[0]));
+    lastState = prepareStateForStorage(applyPresetToState(lastState, FACTORY_PRESETS.find((preset) => preset.id === 'pro-music') || FACTORY_PRESETS[0]));
+    await chrome.storage.local.set({ [STORE_KEYS.state]: lastState });
+  }
+  if (lastState.selectedPresetId === 'default') {
+    lastState = prepareStateForStorage(applyPresetToState(lastState, FACTORY_PRESETS.find((preset) => preset.id === 'pro-music') || FACTORY_PRESETS[0]));
     await chrome.storage.local.set({ [STORE_KEYS.state]: lastState });
   }
 

@@ -9,7 +9,8 @@ import {
   isCutType,
   DEFAULT_COLOR,
   DEFAULT_WIDTH,
-  DEFAULT_OUTPUT
+  DEFAULT_OUTPUT,
+  PRIMARY_MASTER_PRESET_IDS
 } from '../shared/presets.js';
 import { detectAudioOutputDevices, normalizeOutputDeviceId } from '../shared/audio-devices.js';
 import {
@@ -180,7 +181,7 @@ function bindUiEvents() {
   ui.btnUndo.addEventListener('click', undo);
   ui.btnRedo.addEventListener('click', redo);
   ui.btnReset.addEventListener('click', async () => {
-    const defaultPreset = presets.find((preset) => preset.id === 'default') || FACTORY_PRESETS[0];
+    const defaultPreset = presets.find((preset) => preset.id === 'pro-music') || FACTORY_PRESETS[0];
     masterPresetDirty = false;
     clearModulePresetSelections();
     await applyPreset(defaultPreset);
@@ -622,16 +623,26 @@ function renderPresetDropdowns() {
 }
 
 
+function getVisibleMasterPresets() {
+  const primary = presets.filter((preset) => PRIMARY_MASTER_PRESET_IDS.includes(preset.id));
+  const custom = presets.filter((preset) => !FACTORY_PRESETS.some((factory) => factory.id === preset.id));
+  return [...primary, ...custom];
+}
+
 function renderMasterPresetSelect() {
   if (!ui.masterPresetSelect || !state) return;
-  const desired = presets.map((preset) => preset.id).join('|');
+  const visiblePresets = getVisibleMasterPresets();
+  const selectedIsVisible = visiblePresets.some((preset) => preset.id === state.selectedPresetId);
+  const desired = visiblePresets.map((preset) => preset.id).join('|') + `|${selectedIsVisible ? '' : state.selectedPresetId || 'custom'}`;
   if (ui.masterPresetSelect.dataset.optionIds !== desired) {
     ui.masterPresetSelect.innerHTML = '';
-    const custom = document.createElement('option');
-    custom.value = '';
-    custom.textContent = 'Custom / Edited';
-    ui.masterPresetSelect.appendChild(custom);
-    for (const preset of presets) {
+    if (!selectedIsVisible || masterPresetDirty) {
+      const custom = document.createElement('option');
+      custom.value = '';
+      custom.textContent = 'Custom / Edited';
+      ui.masterPresetSelect.appendChild(custom);
+    }
+    for (const preset of visiblePresets) {
       const option = document.createElement('option');
       option.value = preset.id;
       option.textContent = preset.name;
@@ -640,9 +651,7 @@ function renderMasterPresetSelect() {
     }
     ui.masterPresetSelect.dataset.optionIds = desired;
   }
-  const selected = !masterPresetDirty && presets.some((preset) => preset.id === state.selectedPresetId)
-    ? state.selectedPresetId
-    : '';
+  const selected = !masterPresetDirty && selectedIsVisible ? state.selectedPresetId : '';
   ui.masterPresetSelect.value = selected;
 }
 

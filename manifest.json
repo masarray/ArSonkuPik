@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "AR Audio Enhancer",
-  "short_name": "AR Enhancer",
-  "description": "Real-time mastering-style EQ, compressor, harmonic color, stereo width and limiter for the current browser tab. Local processing only.",
-  "version": "0.2.9",
+  "name": "ArSonKuPik",
+  "short_name": "ArSonKuPik",
+  "description": "Lightweight mastering-style browser audio processor with precision EQ, compressor, harmonic color, stereo width, limiter and output routing. Local processing only.",
+  "version": "0.3.0",
   "minimum_chrome_version": "116",
   "action": {
     "default_popup": "popup.html",
-    "default_title": "AR Audio Enhancer"
+    "default_title": "ArSonKuPik"
   },
   "permissions": [
     "activeTab",
