@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AR Audio Enhancer Studio</title>
+  <link rel="stylesheet" href="src/studio/studio.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="glyph" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M3 14c3 0 3-8 6-8s3 12 6 12 3-8 6-8" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <b>AR Audio Enhancer</b>
+          <span>Mastering Chain · EQ · Comp · Color · Width · Limit</span>
+        </div>
+      </div>
+
+      <div class="source" id="sourceChip"><span class="dot"></span><span id="sourceTitle">No active capture</span></div>
+      <div class="spacer"></div>
+
+      <div class="tools">
+        <button class="btn primary" id="startStopButton" type="button">Start Enhance</button>
+        <button class="btn" id="btnAB" type="button" title="Compare A / B">A<span class="muted-separator">/</span>B</button>
+        <button class="btn btn-icon" id="btnUndo" type="button" title="Undo" aria-label="Undo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-1"/></svg>
+        </button>
+        <button class="btn btn-icon" id="btnRedo" type="button" title="Redo" aria-label="Redo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h1"/></svg>
+        </button>
+        <button class="btn" id="btnBypass" type="button" title="Bypass full processing">Bypass</button>
+        <button class="btn" id="btnReset" type="button" title="Reset to Default preset">Reset</button>
+        <button class="btn" id="btnSave" type="button" title="Save custom preset">Save</button>
+      </div>
+    </header>
+
+    <section class="rack-row" id="presets" aria-label="Active mastering chain">
+      <label class="chain-preset">
+        <span>Master Preset</span>
+        <select id="masterPresetSelect" aria-label="Master preset for all FX"></select>
+      </label>
+      <div class="chain-flow" aria-label="Signal flow">
+        <span class="chain-label">Chain</span>
+        <span class="smart-gain-pill" id="smartGainChip">Smart <strong>0.0 dB</strong></span>
+        <button class="rack-node on" data-jump="eq" type="button" aria-pressed="true">EQ</button>
+        <span class="rack-arrow">&rarr;</span>
+        <button class="rack-node on" data-jump="compressor" type="button" aria-pressed="true">COMP</button>
+        <span class="rack-arrow">&rarr;</span>
+        <button class="rack-node on" data-jump="color" type="button" aria-pressed="true">COLOR</button>
+        <span class="rack-arrow">&rarr;</span>
+        <button class="rack-node on" data-jump="width" type="button" aria-pressed="true">WIDTH</button>
+        <span class="rack-arrow">&rarr;</span>
+        <button class="rack-node on" data-jump="limiter" type="button" aria-pressed="true">LIMITER</button>
+      </div>
+      <label class="top-output-device">
+        <span>Output Device</span>
+        <select id="topOutputDeviceSelect" aria-label="Output audio device"></select>
+        <small id="topOutputDeviceHint">Auto-detecting…</small>
+      </label>
+    </section>
+
+    <section class="display-wrap" data-spectrum-view="post">
+      <div class="eq-card-head">
+        <div>
+          <span class="lbl">Equalizer</span>
+          <h2>Precision parametric EQ</h2>
+        </div>
+        <div class="eq-head-tools">
+          <label class="module-preset eq-preset">
+            <span>Preset</span>
+            <select id="eqPresetSelect" data-plugin-preset="eq" aria-label="EQ preset"></select>
+          </label>
+          <button class="module-bypass" id="bypassEq" type="button" aria-pressed="true">ON</button>
+        </div>
+      </div>
+      <div class="side-meter side-meter-input" aria-label="Global input audio stereo level meter">
+        <span class="meter-title">IN</span>
+        <div class="meter-lanes">
+          <div class="meter-lane" aria-hidden="true"><i id="inputMeterLeft"></i></div>
+          <div class="meter-lane" aria-hidden="true"><i id="inputMeterRight"></i></div>
+        </div>
+        <div class="meter-letters"><span>L</span><span>R</span></div>
+        <strong id="inputMeterReadout">-inf</strong>
+      </div>
+      <div class="spectrum-toolbar" id="spectrumToolbar" aria-label="Spectrum monitor mode">
+        <span>Spectrum</span>
+        <button class="spectrum-mode-btn" data-spectrum-mode="pre" type="button" aria-pressed="false" title="Read input spectrum before processing">PRE</button>
+        <button class="spectrum-mode-btn on" data-spectrum-mode="post" type="button" aria-pressed="true" title="Read output spectrum after processing">POST</button>
+      </div>
+      <svg class="display" id="svg" preserveAspectRatio="none" aria-label="Interactive parametric equalizer graph"></svg>
+      <div class="side-meter side-meter-output" aria-label="Global output audio stereo level meter">
+        <span class="meter-title">OUT</span>
+        <div class="meter-lanes">
+          <div class="meter-lane" aria-hidden="true"><i id="outputMeterLeft"></i></div>
+          <div class="meter-lane" aria-hidden="true"><i id="outputMeterRight"></i></div>
+        </div>
+        <div class="meter-letters"><span>L</span><span>R</span></div>
+        <strong id="outputMeterReadout">-inf</strong>
+      </div>
+      <div class="readout" id="readout"></div>
+      <div class="ctx" id="ctx"></div>
+    </section>
+
+    <section class="inspector" id="inspector">
+      <div class="insp-empty">No band selected — double-click the display to add one</div>
+    </section>
+
+    <section class="lower-grid">
+      <section class="module-card compressor-card">
+        <div class="module-head">
+          <div>
+            <span class="lbl">Compressor</span>
+            <h2>Control dynamics without crushing clarity</h2>
+          </div>
+          <div class="module-head-tools">
+            <label class="module-preset">
+              <span>Preset</span>
+              <select id="compressorPresetSelect" data-plugin-preset="compressor" aria-label="Compressor preset"></select>
+            </label>
+            <button class="module-bypass" id="bypassCompressor" type="button" aria-pressed="false">Bypass</button>
+            <div class="gr-meter" aria-label="Compressor gain reduction meter">
+              <div class="gr-meter-top"><span>GR</span><strong id="compressorReductionValue">0.0 dB</strong></div>
+              <div class="gr-track"><span id="gainReductionBar"></span></div>
+              <div class="gr-scale"><span>0</span><span>-6</span><span>-12</span><span>-18</span></div>
+            </div>
+          </div>
+        </div>
+        <canvas id="compressorCanvas" width="560" height="200" aria-label="Compressor transfer curve"></canvas>
+        <div class="control-grid" id="compressorControls"></div>
+      </section>
+
+      <section class="module-card color-card" id="colorCard">
+        <div class="module-head">
+          <div>
+            <span class="lbl">Color &middot; Harmonics</span>
+            <h2>Bass weight, mid thickness, airy top</h2>
+          </div>
+          <div class="module-head-tools compact">
+            <label class="module-preset">
+              <span>Preset</span>
+              <select id="colorPresetSelect" data-plugin-preset="color" aria-label="Color preset"></select>
+            </label>
+            <button class="module-bypass" id="bypassColor" type="button" aria-pressed="false">Bypass</button>
+            <span class="module-badge" id="colorModeBadge">Clean</span>
+          </div>
+        </div>
+        <canvas id="colorCanvas" width="520" height="104" aria-label="Harmonic saturation visualizer"></canvas>
+        <div class="control-grid" id="colorControls"></div>
+      </section>
+
+      <section class="module-card width-card" id="widthCard">
+        <div class="module-head">
+          <div>
+            <span class="lbl">Width</span>
+            <h2>Mono-safe M/S stereo widening</h2>
+          </div>
+          <div class="module-head-tools">
+            <label class="module-preset">
+              <span>Preset</span>
+              <select id="widthPresetSelect" data-plugin-preset="width" aria-label="Width preset"></select>
+            </label>
+            <button class="module-bypass" id="bypassWidth" type="button" aria-pressed="false">Bypass</button>
+            <div class="mini-meter">
+              <span>Correlation</span>
+              <strong id="correlationValue">+1.00</strong>
+              <div class="correlation-track"><i id="correlationBar"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="width-scope" aria-hidden="true"><span id="widthScopeDot"></span></div>
+        <div class="control-grid" id="widthControls"></div>
+      </section>
+
+      <section class="module-card output-card" id="limiterCard">
+        <div class="module-head">
+          <div>
+            <span class="lbl">Limiter</span>
+            <h2>Maximize level without audible damage</h2>
+          </div>
+          <div class="module-head-tools">
+            <label class="module-preset">
+              <span>Preset</span>
+              <select id="limiterPresetSelect" data-plugin-preset="limiter" aria-label="Limiter preset"></select>
+            </label>
+            <button class="module-bypass" id="bypassLimiter" type="button" aria-pressed="false">Bypass</button>
+            <div class="gr-meter" aria-label="Limiter gain reduction meter">
+              <div class="gr-meter-top"><span>LIMIT GR</span><strong id="limiterReductionValue">0.0 dB</strong></div>
+              <div class="gr-track"><span id="limiterReductionBar"></span></div>
+              <div class="gr-scale"><span>0</span><span>-3</span><span>-6</span><span>-12</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="meter-stack">
+          <label>Input <meter id="inputMeter" min="0" max="1" value="0"></meter></label>
+          <label>Output <meter id="outputMeter" min="0" max="1" value="0"></meter></label>
+        </div>
+        <div class="limiter-status-row">
+          <span id="clipBadge" class="clip-badge">Clean</span>
+          <span class="limit-note">Target GR 0-3 dB &middot; warning above 6 dB</span>
+        </div>
+        <div class="control-grid" id="outputControls"></div>
+      </section>
+    </section>
+
+    <section class="hints">
+      <span><b>Double-click</b> add / remove band</span>
+      <span><b>Drag</b> freq / gain</span>
+      <span><b>Wheel</b> Q &middot; slope</span>
+      <span><b>Ctrl-drag</b> Q</span>
+      <span><b>Shift</b> fine-tune</span>
+      <span><b>Alt-click</b> bypass band</span>
+      <span><b>Right-click</b> menu</span>
+    </section>
+  </main>
+
+  <dialog id="saveDialog" class="save-dialog">
+    <form method="dialog">
+      <h3>Save custom preset</h3>
+      <p>Current EQ, compressor, color, width and limiter settings will be saved locally.</p>
+      <input id="presetNameInput" placeholder="Preset name" autocomplete="off">
+      <menu>
+        <button value="cancel" class="btn" type="submit">Cancel</button>
+        <button id="confirmSavePreset" value="default" class="btn primary" type="submit">Save</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script type="module" src="src/studio/studio.js"></script>
+</body>
+</html>
