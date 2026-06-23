@@ -29,7 +29,7 @@ jobs:
       - name: Build Web Store ZIP smoke test
         run: npm run package:webstore
       - name: Upload Web Store ZIP test artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: arsonkupik-webstore-upload-${{ github.sha }}
           path: release/*-webstore-upload.zip
