@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.36
+
+- fixed Stereo Width startup crash caused by accessing width band filter nodes through the array-based `nodes` list instead of `nodeMap`
+- added fail-safe startup cleanup so partial tab-capture streams are always stopped if engine initialization fails
+- prevents follow-up Chrome errors such as "Cannot capture a tab with an active stream" after a failed start
+
 ## 0.3.35
 
 - refreshed product icon, favicon, and Chrome Web Store store icon to match the current neon blue-violet UX theme

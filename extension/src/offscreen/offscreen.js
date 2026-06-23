@@ -148,75 +148,86 @@ class AudioEnhancerEngine {
 
   async start(streamId, tabId, sourceTitle, initialState = null) {
     await this.stop(false);
-    if (initialState) {
-      const { presets, ...initialBase } = initialState;
-      this.state = this.prepareState({ ...createDefaultState(), ...initialBase, active: false, tabId: null });
+    try {
+      if (initialState) {
+        const { presets, ...initialBase } = initialState;
+        this.state = this.prepareState({ ...createDefaultState(), ...initialBase, active: false, tabId: null });
+      }
+
+      const AudioContextCtor = globalThis.AudioContext || globalThis.webkitAudioContext;
+      if (!AudioContextCtor) throw new Error('Web Audio API is not available in this browser.');
+
+      this.context = new AudioContextCtor({ latencyHint: 'balanced' });
+      this.stream = await navigator.mediaDevices.getUserMedia(AUDIO_CONSTRAINTS(streamId));
+      this.source = this.context.createMediaStreamSource(this.stream);
+
+      this.inputGain = this.context.createGain();
+      this.smartHeadroomGain = this.context.createGain();
+      this.smartMakeupGain = this.context.createGain();
+      this.inputChannelSplitter = this.context.createChannelSplitter(2);
+      this.inputLeftAnalyser = this.createMeterAnalyser();
+      this.inputRightAnalyser = this.createMeterAnalyser();
+      this.safetyHighPass = this.context.createBiquadFilter();
+      this.safetyHighPass.type = 'highpass';
+      this.safetyHighPass.frequency.value = 18;
+      this.safetyHighPass.Q.value = 0.707;
+
+      this.eqNodeGroups = this.state.eq.map((band) => this.createEqNodeGroup(band));
+      this.createCompressorNodes();
+      this.createColorNodes();
+      this.createWidthNodes();
+
+      this.limiterDrive = this.context.createGain();
+      this.softClipper = this.context.createWaveShaper();
+      this.softClipper.curve = makeSoftClipCurve(0.94);
+      this.softClipper.oversample = '2x';
+
+      this.limiter = this.context.createDynamicsCompressor();
+      this.limiter.threshold.value = this.state.output.limiterCeiling;
+      this.limiter.knee.value = this.state.output.punchProtect ? 3 : 0;
+      this.limiter.ratio.value = 20;
+      this.limiter.attack.value = this.state.output.punchProtect ? 0.004 : 0.0015;
+      this.limiter.release.value = this.state.output.punchProtect ? 0.08 : 0.055;
+
+      this.outputGain = this.context.createGain();
+      this.rtaFftSize = chooseRtaFftSize();
+      this.inputAnalyser = this.createRtaAnalyser();
+      this.outputAnalyser = this.createRtaAnalyser();
+      this.leftAnalyser = this.createMeterAnalyser();
+      this.rightAnalyser = this.createMeterAnalyser();
+      this.correlationSplitter = this.context.createChannelSplitter(2);
+      this.meterSink = this.context.createGain();
+      this.meterSink.gain.value = 0;
+      this.createStereoBandMeters();
+      this.createOutputRoute();
+
+      this.timeBufferIn = new Float32Array(this.inputAnalyser.fftSize);
+      this.timeBufferInputLeft = new Float32Array(this.inputLeftAnalyser.fftSize);
+      this.timeBufferInputRight = new Float32Array(this.inputRightAnalyser.fftSize);
+      this.timeBufferOut = new Float32Array(this.outputAnalyser.fftSize);
+      this.timeBufferLeft = new Float32Array(this.leftAnalyser.fftSize);
+      this.timeBufferRight = new Float32Array(this.rightAnalyser.fftSize);
+      this.inputFrequencyData = new Float32Array(this.inputAnalyser.frequencyBinCount);
+      this.outputFrequencyData = new Float32Array(this.outputAnalyser.frequencyBinCount);
+
+      this.applyAllParams();
+      this.connectGraph();
+      await this.applyOutputDevice();
+      await this.context.resume();
+      await this.ensureOutputPlayback();
+
+      this.state = { ...this.state, active: true, tabId, sourceTitle: sourceTitle || 'Current tab', updatedAt: Date.now() };
+      notifyStateChanged(this.getPublicState());
+    } catch (error) {
+      // If startup fails after getUserMedia() succeeds, Chrome keeps the tab capture
+      // stream alive unless we explicitly stop it. That makes the next click fail with
+      // "Cannot capture a tab with an active stream." Always release partial startup
+      // resources before rethrowing the real root error.
+      await this.stop(false).catch(() => {});
+      this.state = { ...this.state, active: false, tabId: null, sourceTitle: 'No active capture', updatedAt: Date.now() };
+      notifyStateChanged(this.getPublicState());
+      throw error;
     }
-
-    const AudioContextCtor = globalThis.AudioContext || globalThis.webkitAudioContext;
-    if (!AudioContextCtor) throw new Error('Web Audio API is not available in this browser.');
-
-    this.context = new AudioContextCtor({ latencyHint: 'balanced' });
-    this.stream = await navigator.mediaDevices.getUserMedia(AUDIO_CONSTRAINTS(streamId));
-    this.source = this.context.createMediaStreamSource(this.stream);
-
-    this.inputGain = this.context.createGain();
-    this.smartHeadroomGain = this.context.createGain();
-    this.smartMakeupGain = this.context.createGain();
-    this.inputChannelSplitter = this.context.createChannelSplitter(2);
-    this.inputLeftAnalyser = this.createMeterAnalyser();
-    this.inputRightAnalyser = this.createMeterAnalyser();
-    this.safetyHighPass = this.context.createBiquadFilter();
-    this.safetyHighPass.type = 'highpass';
-    this.safetyHighPass.frequency.value = 18;
-    this.safetyHighPass.Q.value = 0.707;
-
-    this.eqNodeGroups = this.state.eq.map((band) => this.createEqNodeGroup(band));
-    this.createCompressorNodes();
-    this.createColorNodes();
-    this.createWidthNodes();
-
-    this.limiterDrive = this.context.createGain();
-    this.softClipper = this.context.createWaveShaper();
-    this.softClipper.curve = makeSoftClipCurve(0.94);
-    this.softClipper.oversample = '2x';
-
-    this.limiter = this.context.createDynamicsCompressor();
-    this.limiter.threshold.value = this.state.output.limiterCeiling;
-    this.limiter.knee.value = this.state.output.punchProtect ? 3 : 0;
-    this.limiter.ratio.value = 20;
-    this.limiter.attack.value = this.state.output.punchProtect ? 0.004 : 0.0015;
-    this.limiter.release.value = this.state.output.punchProtect ? 0.08 : 0.055;
-
-    this.outputGain = this.context.createGain();
-    this.rtaFftSize = chooseRtaFftSize();
-    this.inputAnalyser = this.createRtaAnalyser();
-    this.outputAnalyser = this.createRtaAnalyser();
-    this.leftAnalyser = this.createMeterAnalyser();
-    this.rightAnalyser = this.createMeterAnalyser();
-    this.correlationSplitter = this.context.createChannelSplitter(2);
-    this.meterSink = this.context.createGain();
-    this.meterSink.gain.value = 0;
-    this.createStereoBandMeters();
-    this.createOutputRoute();
-
-    this.timeBufferIn = new Float32Array(this.inputAnalyser.fftSize);
-    this.timeBufferInputLeft = new Float32Array(this.inputLeftAnalyser.fftSize);
-    this.timeBufferInputRight = new Float32Array(this.inputRightAnalyser.fftSize);
-    this.timeBufferOut = new Float32Array(this.outputAnalyser.fftSize);
-    this.timeBufferLeft = new Float32Array(this.leftAnalyser.fftSize);
-    this.timeBufferRight = new Float32Array(this.rightAnalyser.fftSize);
-    this.inputFrequencyData = new Float32Array(this.inputAnalyser.frequencyBinCount);
-    this.outputFrequencyData = new Float32Array(this.outputAnalyser.frequencyBinCount);
-
-    this.applyAllParams();
-    this.connectGraph();
-    await this.applyOutputDevice();
-    await this.context.resume();
-    await this.ensureOutputPlayback();
-
-    this.state = { ...this.state, active: true, tabId, sourceTitle: sourceTitle || 'Current tab', updatedAt: Date.now() };
-    notifyStateChanged(this.getPublicState());
   }
 
   async stop(notify = true) {
@@ -1128,12 +1139,12 @@ class AudioEnhancerEngine {
     w.midBand.guard.ratio.setTargetAtTime(1.45 + Math.max(0, midGain - 1) * 0.7, now, ramp);
     w.highBand.guard.ratio.setTargetAtTime(1.7 + Math.max(0, highGain - 1) * 1.0, now, ramp);
 
-    w.lowBand.nodes.high.frequency.setTargetAtTime(155, now, ramp);
-    w.lowMidBand.nodes.low.frequency.setTargetAtTime(155, now, ramp);
-    w.lowMidBand.nodes.high.frequency.setTargetAtTime(680, now, ramp);
-    w.midBand.nodes.low.frequency.setTargetAtTime(680, now, ramp);
-    w.midBand.nodes.high.frequency.setTargetAtTime(4200 + tonePositive * 35, now, ramp);
-    w.highBand.nodes.low.frequency.setTargetAtTime(4300 + tonePositive * 50, now, ramp);
+    w.lowBand.nodeMap.high.frequency.setTargetAtTime(155, now, ramp);
+    w.lowMidBand.nodeMap.low.frequency.setTargetAtTime(155, now, ramp);
+    w.lowMidBand.nodeMap.high.frequency.setTargetAtTime(680, now, ramp);
+    w.midBand.nodeMap.low.frequency.setTargetAtTime(680, now, ramp);
+    w.midBand.nodeMap.high.frequency.setTargetAtTime(4200 + tonePositive * 35, now, ramp);
+    w.highBand.nodeMap.low.frequency.setTargetAtTime(4300 + tonePositive * 50, now, ramp);
 
     w.sideAirTone.frequency.setTargetAtTime(9400 + tonePositive * 90, now, ramp);
     w.sideAirTone.gain.setTargetAtTime(clamp(tone * 0.18, -2.2, 3.6), now, ramp);

@@ -3,7 +3,7 @@
   "name": "ArSonKuPik",
   "short_name": "ArSonKuPik",
   "description": "Local tab audio enhancer with precision EQ, compressor, color, stereo width, limiter, and output routing.",
-  "version": "0.3.35",
+  "version": "0.3.36",
   "minimum_chrome_version": "116",
   "action": {
     "default_popup": "popup.html",
