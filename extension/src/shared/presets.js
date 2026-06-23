@@ -44,7 +44,7 @@ export const DEFAULT_COLOR = {
   warmth: 11,
   air: 20,
   mix: 40,
-  stereoMid: 38,
+  stereoMid: 42,
   mode: 'modern'
 };
 
@@ -74,7 +74,7 @@ export const DEFAULT_OUTPUT = {
   outputRouteStatus: 'default'
 };
 
-export const DEFAULT_MASTER_REVISION = 'source-aware-width-v11';
+export const DEFAULT_MASTER_REVISION = 'smart-low-mid-body-v13';
 
 export const PRIMARY_MASTER_PRESET_IDS = [
   'default',
@@ -121,11 +121,11 @@ export const FACTORY_PRESETS = [
       // Solid, powerful low body (punch + warmth) without boom.
       { ...DEFAULT_EQ_BANDS[1], frequency: 92, gain: 2.2, q: 0.7 },
       // Scoop low-mid mud so vocals and mix read clearly.
-      { ...DEFAULT_EQ_BANDS[2], frequency: 300, gain: -2.0, q: 1.1 },
+      { ...DEFAULT_EQ_BANDS[2], frequency: 345, gain: -1.15, q: 1.02 },
       // ~3 kHz presence/excitement — vocal clarity and "buzz" that pulls focus.
-      { ...DEFAULT_EQ_BANDS[3], frequency: 3000, gain: 1.6, q: 0.9 },
+      { ...DEFAULT_EQ_BANDS[3], frequency: 2920, gain: 1.78, q: 0.88 },
       // ~7 kHz definition for crisp ("renyah") detail, above the harsh 4-5 kHz core.
-      { ...DEFAULT_EQ_BANDS[4], frequency: 7000, gain: 1.35, q: 1.05 },
+      { ...DEFAULT_EQ_BANDS[4], frequency: 6400, gain: 1.42, q: 1.05 },
       // High shelf air/sparkle for an open, shiny, expensive top end.
       { ...DEFAULT_EQ_BANDS[5], frequency: 12200, gain: 2.4, q: 0.6 }
     ],
@@ -135,10 +135,10 @@ export const FACTORY_PRESETS = [
     compressor: { threshold: -25, ratio: 2.0, knee: 22, attack: 0.028, release: 0.16, makeupGain: 1.2, parallelMix: 90 },
     // Modern harmonic excitation: richness + air = the "sweet/dopamine" factor, kept parallel so it stays clean.
     // stereoMid drives the real-side mid exciter so the genuine L-R "bersahutan" mid detail stays alive and energetic.
-    color: { enabled: true, drive: 5.6, body: 20, warmth: 14, harmonics: 56, air: 28, mix: 44, stereoMid: 76, mode: 'modern' },
+    color: { enabled: true, drive: 5.55, body: 23, warmth: 18, harmonics: 61, air: 27, mix: 44, stereoMid: 90, mode: 'modern' },
     // Lively multiband image. monoBass keeps the low end solid & mono (no LF phase smear);
     // the synthetic side is added antisymmetrically so it cancels in the mono sum -> zero phase issue.
-    width: { enabled: true, width: 134, lowWidth: 100, lowMidWidth: 108, midWidth: 120, highWidth: 160, sourceProtect: 90, monoBass: true, monoBassFreq: 150, sideTone: 3.0 },
+    width: { enabled: true, width: 132, lowWidth: 100, lowMidWidth: 106, midWidth: 116, highWidth: 154, sourceProtect: 94, monoBass: true, monoBassFreq: 155, sideTone: 2.8 },
     // Loud and punchy with punch-protect on the limiter so it never pumps or fatigues.
     output: { outputGain: -1.4, limiterDrive: 0.8, limiterCeiling: -1, punchProtect: true }
   }),
@@ -149,14 +149,14 @@ export const FACTORY_PRESETS = [
     eq: [
       { ...DEFAULT_EQ_BANDS[0], frequency: 30, slope: 24 },
       { ...DEFAULT_EQ_BANDS[1], frequency: 86, gain: 1.15, q: 0.7 },
-      { ...DEFAULT_EQ_BANDS[2], frequency: 275, gain: -1.45, q: 1.05 },
+      { ...DEFAULT_EQ_BANDS[2], frequency: 340, gain: -0.95, q: 1.02 },
       { id: 'vocal-focus-audiophile', label: 'Vocal Focus', type: 'bell', frequency: 1850, gain: 0.65, q: 0.8, slope: 12, enabled: true },
       { ...DEFAULT_EQ_BANDS[4], frequency: 5000, gain: 1.1, q: 1.1 },
       { ...DEFAULT_EQ_BANDS[5], frequency: 12400, gain: 1.9, q: 0.62 }
     ],
     compressor: { threshold: -24, ratio: 1.65, knee: 22, attack: 0.032, release: 0.22, makeupGain: 0.55, parallelMix: 90 },
-    color: { enabled: true, drive: 3.7, body: 11, warmth: 8, harmonics: 36, air: 17, mix: 32, mode: 'modern' },
-    width: { enabled: true, width: 124, lowWidth: 100, lowMidWidth: 104, midWidth: 112, highWidth: 144, monoBass: true, monoBassFreq: 150, sideTone: 2.2 },
+    color: { enabled: true, drive: 3.55, body: 13, warmth: 10, harmonics: 35, air: 16, mix: 30, stereoMid: 42, mode: 'modern' },
+    width: { enabled: true, width: 122, lowWidth: 100, lowMidWidth: 102, midWidth: 108, highWidth: 138, sourceProtect: 92, monoBass: true, monoBassFreq: 150, sideTone: 1.8 },
     output: { outputGain: -2.0, limiterDrive: 0.35, limiterCeiling: -1 }
   }),
   p({
@@ -166,15 +166,15 @@ export const FACTORY_PRESETS = [
     eq: [
       { ...DEFAULT_EQ_BANDS[0], frequency: 28, slope: 24 },
       { ...DEFAULT_EQ_BANDS[1], frequency: 82, gain: 2.35 },
-      { ...DEFAULT_EQ_BANDS[2], frequency: 235, gain: -1.35, q: 1.05 },
+      { ...DEFAULT_EQ_BANDS[2], frequency: 335, gain: -0.85, q: 1.02 },
       { id: 'mid-thick', label: 'Mid Thick', type: 'bell', frequency: 620, gain: 0.75, q: 0.85, slope: 12, enabled: true },
       { ...DEFAULT_EQ_BANDS[3], frequency: 2200, gain: 0.95, q: 1.0 },
       { ...DEFAULT_EQ_BANDS[4], frequency: 5200, gain: 1.35, q: 1.2 },
       { ...DEFAULT_EQ_BANDS[5], frequency: 11800, gain: 2.0 }
     ],
     compressor: { threshold: -23.5, ratio: 2.05, knee: 16, attack: 0.024, release: 0.17, makeupGain: 0.75, parallelMix: 91 },
-    color: { enabled: true, drive: 5.3, body: 20, warmth: 11, harmonics: 52, air: 21, mix: 43, mode: 'modern' },
-    width: { enabled: true, width: 136, lowWidth: 100, lowMidWidth: 106, midWidth: 118, highWidth: 156, monoBass: true, monoBassFreq: 150, sideTone: 2.6 },
+    color: { enabled: true, drive: 5.08, body: 23, warmth: 16, harmonics: 54, air: 20, mix: 42, stereoMid: 76, mode: 'modern' },
+    width: { enabled: true, width: 132, lowWidth: 100, lowMidWidth: 104, midWidth: 114, highWidth: 150, sourceProtect: 93, monoBass: true, monoBassFreq: 155, sideTone: 2.4 },
     output: { outputGain: -2.4, limiterDrive: 0.72, limiterCeiling: -1 }
   }),
   p({
@@ -190,8 +190,8 @@ export const FACTORY_PRESETS = [
       { id: 'field-air', label: 'Open Air', type: 'highshelf', frequency: 11800, gain: 0.85, q: 0.64, slope: 12, enabled: true }
     ],
     compressor: { threshold: -25, ratio: 2.25, knee: 18, attack: 0.026, release: 0.20, makeupGain: 0.55, parallelMix: 88 },
-    color: { enabled: true, drive: 5.4, body: 22, warmth: 12, harmonics: 50, air: 18, mix: 44, mode: 'modern' },
-    width: { enabled: true, width: 130, lowWidth: 100, lowMidWidth: 102, midWidth: 112, highWidth: 148, monoBass: true, monoBassFreq: 190, sideTone: 2.2 },
+    color: { enabled: true, drive: 5.16, body: 23, warmth: 15, harmonics: 52, air: 17, mix: 42, stereoMid: 64, mode: 'modern' },
+    width: { enabled: true, width: 126, lowWidth: 100, lowMidWidth: 101, midWidth: 108, highWidth: 142, sourceProtect: 94, monoBass: true, monoBassFreq: 190, sideTone: 2.0 },
     output: { outputGain: -3.2, limiterDrive: 0.72, limiterCeiling: -1.2 }
   }),
   p({
@@ -209,8 +209,8 @@ export const FACTORY_PRESETS = [
       { ...DEFAULT_EQ_BANDS[5], frequency: 12000, gain: 1.55 }
     ],
     compressor: { threshold: -24, ratio: 1.7, knee: 18, attack: 0.034, release: 0.28, makeupGain: 0.35, parallelMix: 90 },
-    color: { enabled: true, drive: 4.0, body: 13, warmth: 11, harmonics: 38, air: 17, mix: 36, mode: 'warm' },
-    width: { enabled: true, width: 132, lowWidth: 100, lowMidWidth: 104, midWidth: 116, highWidth: 146, monoBass: true, monoBassFreq: 165, sideTone: 2.0 },
+    color: { enabled: true, drive: 3.82, body: 14, warmth: 13, harmonics: 37, air: 15, mix: 34, stereoMid: 34, mode: 'warm' },
+    width: { enabled: true, width: 126, lowWidth: 100, lowMidWidth: 102, midWidth: 110, highWidth: 140, sourceProtect: 95, monoBass: true, monoBassFreq: 165, sideTone: 1.6 },
     output: { outputGain: -2.2, limiterDrive: 0.28, limiterCeiling: -1.1 }
   }),
   p({
@@ -228,7 +228,7 @@ export const FACTORY_PRESETS = [
       { ...DEFAULT_EQ_BANDS[5], frequency: 11200, gain: 0.4 }
     ],
     compressor: { threshold: -26.5, ratio: 2.0, knee: 24, attack: 0.018, release: 0.26, makeupGain: 0.45, parallelMix: 80 },
-    color: { enabled: true, drive: 1.4, body: 5, warmth: 7, harmonics: 10, air: 4, mix: 11, mode: 'clean' },
+    color: { enabled: true, drive: 1.4, body: 5, warmth: 7, harmonics: 10, air: 4, mix: 11, stereoMid: 0, mode: 'clean' },
     width: { enabled: false, width: 100, lowWidth: 100, lowMidWidth: 100, midWidth: 100, highWidth: 105, monoBass: true, monoBassFreq: 145, sideTone: 0 },
     output: { outputGain: -2.8, limiterDrive: 0.08, limiterCeiling: -1.3 }
   }),
@@ -245,7 +245,7 @@ export const FACTORY_PRESETS = [
       { ...DEFAULT_EQ_BANDS[5], frequency: 8400, gain: -2.4 }
     ],
     compressor: { threshold: -34, ratio: 3.2, knee: 20, attack: 0.018, release: 0.34, makeupGain: 1.4, parallelMix: 78 },
-    color: { enabled: true, drive: 1.3, body: -3, warmth: 7, harmonics: 7, air: -8, mix: 10, mode: 'warm' },
+    color: { enabled: true, drive: 1.3, body: -3, warmth: 7, harmonics: 7, air: -8, mix: 10, stereoMid: 0, mode: 'warm' },
     width: { enabled: false, width: 98, lowWidth: 100, lowMidWidth: 96, midWidth: 94, highWidth: 100, monoBass: true, monoBassFreq: 120, sideTone: -1 },
     output: { outputGain: -5, limiterDrive: 0.08, limiterCeiling: -1.5 }
   })
@@ -336,20 +336,20 @@ export const MODULE_PRESETS = {
   ],
   color: [
     { id: 'signature-glow', name: 'MasAri Glow', color: DEFAULT_COLOR },
-    { id: 'clean-glow', name: 'Clean Glow', color: { enabled: true, drive: 2.2, body: 7, warmth: 5, harmonics: 22, air: 12, mix: 26, mode: 'clean' } },
-    { id: 'modern-exciter', name: 'Analog Lift', color: { enabled: true, drive: 4.8, body: 15, warmth: 9, harmonics: 46, air: 19, mix: 39, mode: 'modern' } },
-    { id: 'side-sparkle', name: 'Silky Sparkle', color: { enabled: true, drive: 3.6, body: 8, warmth: 5, harmonics: 36, air: 22, mix: 32, mode: 'modern' } },
-    { id: 'field-sonic', name: 'Open Air Thick', color: { enabled: true, drive: 5.4, body: 22, warmth: 12, harmonics: 50, air: 18, mix: 44, mode: 'modern' } },
-    { id: 'voice-polish', name: 'Voice Thick', color: { enabled: true, drive: 1.4, body: 5, warmth: 7, harmonics: 10, air: 4, mix: 11, mode: 'clean' } },
-    { id: 'thick-sweet', name: 'Thick Warm', color: { enabled: true, drive: 4.0, body: 14, warmth: 13, harmonics: 34, air: 13, mix: 36, mode: 'warm' } },
-    { id: 'night-warm', name: 'Night Warm', color: { enabled: true, drive: 1.3, body: -3, warmth: 7, harmonics: 7, air: -8, mix: 10, mode: 'warm' } }
+    { id: 'clean-glow', name: 'Clean Glow', color: { enabled: true, drive: 2.2, body: 7, warmth: 5, harmonics: 22, air: 12, mix: 26, stereoMid: 12, mode: 'clean' } },
+    { id: 'modern-exciter', name: 'Analog Lift', color: { enabled: true, drive: 4.72, body: 16, warmth: 11, harmonics: 49, air: 18, mix: 39, stereoMid: 60, mode: 'modern' } },
+    { id: 'side-sparkle', name: 'Silky Sparkle', color: { enabled: true, drive: 3.52, body: 9, warmth: 7, harmonics: 39, air: 21, mix: 32, stereoMid: 50, mode: 'modern' } },
+    { id: 'field-sonic', name: 'Open Air Thick', color: { enabled: true, drive: 5.16, body: 23, warmth: 15, harmonics: 52, air: 17, mix: 42, stereoMid: 64, mode: 'modern' } },
+    { id: 'voice-polish', name: 'Voice Thick', color: { enabled: true, drive: 1.4, body: 5, warmth: 7, harmonics: 10, air: 4, mix: 11, stereoMid: 0, mode: 'clean' } },
+    { id: 'thick-sweet', name: 'Thick Warm', color: { enabled: true, drive: 3.92, body: 15, warmth: 15, harmonics: 36, air: 12, mix: 36, stereoMid: 34, mode: 'warm' } },
+    { id: 'night-warm', name: 'Night Warm', color: { enabled: true, drive: 1.3, body: -3, warmth: 7, harmonics: 7, air: -8, mix: 10, stereoMid: 0, mode: 'warm' } }
   ],
   width: [
     { id: 'natural-stereo', name: 'Natural Stereo', width: DEFAULT_WIDTH },
-    { id: 'wide-music', name: 'Wide Music', width: { enabled: true, width: 136, lowWidth: 100, lowMidWidth: 106, midWidth: 118, highWidth: 154, monoBass: true, monoBassFreq: 150, sideTone: 2.6 } },
-    { id: 'ultra-wide-air', name: 'Ultra Wide Air', width: { enabled: true, width: 158, lowWidth: 100, lowMidWidth: 110, midWidth: 130, highWidth: 186, monoBass: true, monoBassFreq: 175, sideTone: 3.4 } },
-    { id: 'open-air-wide', name: 'Open Air Wide', width: { enabled: true, width: 130, lowWidth: 100, lowMidWidth: 102, midWidth: 112, highWidth: 148, monoBass: true, monoBassFreq: 190, sideTone: 2.2 } },
-    { id: 'cinema-wide', name: 'Cinema Safe', width: { enabled: true, width: 132, lowWidth: 100, lowMidWidth: 104, midWidth: 116, highWidth: 146, monoBass: true, monoBassFreq: 165, sideTone: 2.0 } },
+    { id: 'wide-music', name: 'Wide Music', width: { enabled: true, width: 132, lowWidth: 100, lowMidWidth: 104, midWidth: 114, highWidth: 150, sourceProtect: 93, monoBass: true, monoBassFreq: 155, sideTone: 2.4 } },
+    { id: 'ultra-wide-air', name: 'Ultra Wide Air', width: { enabled: true, width: 146, lowWidth: 100, lowMidWidth: 106, midWidth: 120, highWidth: 168, sourceProtect: 96, monoBass: true, monoBassFreq: 180, sideTone: 3.0 } },
+    { id: 'open-air-wide', name: 'Open Air Wide', width: { enabled: true, width: 126, lowWidth: 100, lowMidWidth: 101, midWidth: 108, highWidth: 142, sourceProtect: 94, monoBass: true, monoBassFreq: 190, sideTone: 2.0 } },
+    { id: 'cinema-wide', name: 'Cinema Safe', width: { enabled: true, width: 126, lowWidth: 100, lowMidWidth: 102, midWidth: 110, highWidth: 140, sourceProtect: 95, monoBass: true, monoBassFreq: 165, sideTone: 1.6 } },
     { id: 'vocal-center', name: 'Vocal Center', width: { enabled: false, width: 100, lowWidth: 100, lowMidWidth: 100, midWidth: 100, highWidth: 105, monoBass: true, monoBassFreq: 145, sideTone: 0 } },
     { id: 'night-narrow', name: 'Night Narrow', width: { enabled: false, width: 98, lowWidth: 100, lowMidWidth: 96, midWidth: 94, highWidth: 100, monoBass: true, monoBassFreq: 140, sideTone: -1 } }
   ],

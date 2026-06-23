@@ -51,10 +51,6 @@
         <button class="btn btn-icon" id="btnRedo" type="button" title="Redo" aria-label="Redo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h1"/></svg>
         </button>
-        <button class="btn master-bypass" id="btnBypass" type="button" title="Master bypass — disable all FX">
-          <svg class="power-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg>
-          <span>ACTIVE</span>
-        </button>
       </div>
     </header>
 
@@ -82,6 +78,9 @@
         </button>
         <button class="preset-icon" id="btnSave" type="button" title="Save custom preset" aria-label="Save preset">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3"/><path d="M8 21v-7h8v7"/></svg>
+        </button>
+        <button class="preset-icon master-bypass rack-master-bypass" id="btnBypass" type="button" title="Master FX active — click to bypass all FX" aria-label="Master FX active — click to bypass all FX" aria-pressed="true" data-tip="Active">
+          <svg class="power-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg>
         </button>
       </div>
     </section>

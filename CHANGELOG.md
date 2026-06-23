@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.43 - Sweet Mid Anchor smart color
+
+- Added a coherent Mid-center sweet anchor under the real-side Stereo Mid exciter so Max Enhancer keeps a solid vocal/snare/instrument core while the side detail stays lively.
+- Retuned Stereo Mid to be side-plus-center smart processing: real Side still cancels in mono, while the new Mid anchor returns equally to L/R and avoids hollow/phasey imaging.
+- Updated factory and module presets for the new engine with safer source protection, less aggressive synthetic width, explicit Stereo Mid values, and voice/night presets kept center-safe.
+
 ## 0.3.42 - Clickless warm bypass crossfade
 
 - Reworked Enhance ON/OFF warm bypass to keep raw and processed paths connected in parallel.

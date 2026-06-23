@@ -193,23 +193,36 @@ button{font:inherit;user-select:none}
 .btn-icon svg{width:14px;height:14px}
 .muted-separator{color:var(--muted-dim);font-weight:400}
 
-/* Master Bypass — clearly distinct from per-FX bypass */
+/* Master Bypass — cyan means processing active, red means full bypass. */
 .master-bypass{
-  height:32px;padding:0 14px;border-radius:10px;font-family:var(--mono);
-  font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;
-  color:#06211E;border:1px solid rgba(95,227,214,.36);
-  background:linear-gradient(135deg,#72EFE4,#43C7BD);
-  box-shadow:0 8px 22px -14px rgba(95,227,214,.72), inset 0 1px 0 rgba(255,255,255,.38);
+  position:relative;isolation:isolate;
+  color:#7FF8EF;border-color:rgba(101,244,235,.78);
+  background:radial-gradient(circle at 50% 16%,rgba(101,244,235,.22),rgba(101,244,235,.055) 56%,rgba(4,10,14,.92));
+  box-shadow:0 0 0 1px rgba(101,244,235,.16),0 0 18px -7px rgba(101,244,235,.95),inset 0 1px 0 rgba(255,255,255,.12);
+  text-shadow:0 0 12px rgba(101,244,235,.88);
 }
-.master-bypass:hover{filter:brightness(1.04);border-color:rgba(95,227,214,.58);background:linear-gradient(135deg,#87F5EC,#51D4CA)}
-.master-bypass svg{width:12px;height:12px}
+.master-bypass:hover{filter:brightness(1.08);border-color:rgba(128,255,247,.95);box-shadow:0 0 0 1px rgba(101,244,235,.22),0 0 24px -6px rgba(101,244,235,1),inset 0 1px 0 rgba(255,255,255,.16)}
+.master-bypass svg{width:14px;height:14px;filter:drop-shadow(0 0 6px rgba(101,244,235,.80))}
 .master-bypass.active{
-  color:#241003;border-color:rgba(255,180,107,.50);
-  background:linear-gradient(135deg,#FFC46F,#FF9A57);
-  box-shadow:0 10px 24px -14px rgba(255,154,87,.72), inset 0 1px 0 rgba(255,255,255,.36);
+  color:#FF6868;border-color:rgba(255,86,86,.82);
+  background:radial-gradient(circle at 50% 16%,rgba(255,86,86,.24),rgba(255,86,86,.060) 58%,rgba(15,5,8,.92));
+  box-shadow:0 0 0 1px rgba(255,86,86,.16),0 0 20px -7px rgba(255,70,70,.95),inset 0 1px 0 rgba(255,255,255,.10);
+  text-shadow:0 0 13px rgba(255,86,86,.88);
   transform:none;
 }
-.master-bypass.active:hover{filter:brightness(1.05);border-color:rgba(255,196,111,.66)}
+.master-bypass.active svg{filter:drop-shadow(0 0 7px rgba(255,86,86,.82))}
+.master-bypass.active:hover{filter:brightness(1.08);border-color:rgba(255,112,112,.96);box-shadow:0 0 0 1px rgba(255,86,86,.22),0 0 26px -6px rgba(255,70,70,1),inset 0 1px 0 rgba(255,255,255,.14)}
+.rack-master-bypass{margin-left:2px;overflow:visible}
+.rack-master-bypass::after{
+  content:attr(data-tip);position:absolute;right:0;bottom:calc(100% + 8px);
+  min-width:52px;padding:5px 8px;border-radius:10px;font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;text-align:center;
+  color:var(--text);background:linear-gradient(180deg,rgba(20,24,35,.96),rgba(8,10,15,.96));border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 14px 30px -18px #000, inset 0 1px 0 rgba(255,255,255,.05);opacity:0;transform:translateY(4px);pointer-events:none;transition:.16s var(--ease);z-index:40;
+}
+.rack-master-bypass::before{
+  content:"";position:absolute;right:13px;bottom:calc(100% + 4px);border:5px solid transparent;border-top-color:rgba(20,24,35,.96);opacity:0;transform:translateY(4px);transition:.16s var(--ease);z-index:39;
+}
+.rack-master-bypass:hover::after,.rack-master-bypass:hover::before{opacity:1;transform:translateY(0)}
 
 /* ───────────────────── Brand polish / app shell ───────────────────── */
 .brand-word{font-size:15px;font-weight:800;letter-spacing:-.035em;display:inline-flex;gap:1px}

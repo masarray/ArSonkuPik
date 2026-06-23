@@ -438,11 +438,15 @@ function renderChromeState() {
 }
 
 function syncMasterBypassButton(isBypassed = false) {
-  ui.btnBypass?.classList.toggle('active', Boolean(isBypassed));
+  const bypassed = Boolean(isBypassed);
+  ui.btnBypass?.classList.toggle('active', bypassed);
   const label = ui.btnBypass?.querySelector('span');
-  if (label) label.textContent = isBypassed ? 'BYPASS' : 'ACTIVE';
-  ui.btnBypass?.setAttribute('aria-pressed', String(!isBypassed));
-  ui.btnBypass?.setAttribute('title', isBypassed ? 'Master bypass is enabled — click to reactivate all FX' : 'Master FX active — click to bypass all FX');
+  if (label) label.textContent = bypassed ? 'BYPASS' : 'ACTIVE';
+  const title = bypassed ? 'Master bypass is enabled — click to reactivate all FX' : 'Master FX active — click to bypass all FX';
+  ui.btnBypass?.setAttribute('aria-pressed', String(!bypassed));
+  ui.btnBypass?.setAttribute('title', title);
+  ui.btnBypass?.setAttribute('aria-label', title);
+  ui.btnBypass?.setAttribute('data-tip', bypassed ? 'Bypass' : 'Active');
 }
 
 function renderAll() {
