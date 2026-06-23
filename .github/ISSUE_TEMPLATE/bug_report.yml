@@ -1,0 +1,46 @@
+name: Bug report
+description: Report a reproducible issue in ArSonKuPik
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve ArSonKuPik. Please avoid sharing private browsing, audio, or account data.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Extension version shown in manifest or release tag.
+      placeholder: "0.3.34"
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the issue clearly.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. Hear/see ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "Chrome version, OS, audio output device, website/media type"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: Screenshots or logs are helpful. Do not upload copyrighted audio.

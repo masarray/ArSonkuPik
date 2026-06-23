@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+  <link rel="shortcut icon" href="icons/favicon.ico">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ArSonKuPik Studio</title>
+  <link rel="stylesheet" href="src/studio/studio.shell.css">
+  <link rel="stylesheet" href="src/studio/studio.eq.css">
+  <link rel="stylesheet" href="src/studio/studio.modules.css">
+  <link rel="stylesheet" href="src/studio/studio.responsive.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="glyph" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+              <linearGradient id="brandGlyph" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FFC773"/>
+                <stop offset="48%" stop-color="#FF6FA9"/>
+                <stop offset="100%" stop-color="#9C7BFF"/>
+              </linearGradient>
+            </defs>
+            <path d="M3 16c2.4 0 2.4-9 4.8-9s2.4 18 4.8 18 2.4-13 4.8-13 2.4 9 4.8 9 2.4-5 4.8-5" stroke="url(#brandGlyph)" stroke-width="2.2"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <b class="brand-word">
+            <span class="brand-arson">ArSon</span><span class="brand-kupik">KuPik</span>
+          </b>
+          <span>Mastering Chain</span>
+        </div>
+      </div>
+
+      <div class="source" id="sourceChip"><span class="dot"></span><span id="sourceTitle">No active capture</span></div>
+      <div class="topbar-output-device" id="topbarOutputDevice" aria-live="polite"></div>
+      <div class="spacer"></div>
+
+      <div class="tools">
+        <button class="btn ab-toggle" id="btnAB" type="button" title="A/B compare — active slot A" aria-label="A/B compare active slot A" data-slot="A">
+          <span class="ab-thumb" aria-hidden="true"></span>
+          <span class="ab-label">A</span>
+          <span class="ab-label">B</span>
+        </button>
+        <button class="btn btn-icon" id="btnUndo" type="button" title="Undo" aria-label="Undo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-1"/></svg>
+        </button>
+        <button class="btn btn-icon" id="btnRedo" type="button" title="Redo" aria-label="Redo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h1"/></svg>
+        </button>
+        <button class="btn master-bypass" id="btnBypass" type="button" title="Master bypass — disable all FX">
+          <svg class="power-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg>
+          <span>ACTIVE</span>
+        </button>
+      </div>
+    </header>
+
+    <section class="rack-row" id="presets" aria-label="Active mastering chain">
+      <div class="chain-flow" aria-label="Signal flow">
+        <span class="chain-label">Chain</span>
+        <span class="smart-gain-pill" id="smartGainChip">Smart <strong>0.0 dB</strong></span>
+        <button class="rack-node on" data-jump="eq" type="button" aria-pressed="true">EQ</button>
+        <span class="rack-arrow">&rarr;</span>
+        <button class="rack-node on" data-jump="compressor" type="button" aria-pressed="true">COMP</button>
+        <span class="rack-arrow">&rarr;</span>
+        <button class="rack-node on" data-jump="color" type="button" aria-pressed="true">COLOR</button>
+        <span class="rack-arrow">&rarr;</span>
+        <button class="rack-node on" data-jump="width" type="button" aria-pressed="true">WIDTH</button>
+        <span class="rack-arrow">&rarr;</span>
+        <button class="rack-node on" data-jump="limiter" type="button" aria-pressed="true">LIMITER</button>
+      </div>
+      <div class="chain-actions">
+        <label class="chain-preset side-master">
+          <span>Master</span>
+          <select id="masterPresetSelect" class="ak-select" aria-label="Master preset for all FX"></select>
+        </label>
+        <button class="preset-icon" id="btnReset" type="button" title="Reset to MasAri preset" aria-label="Reset preset">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 4v6h6"/></svg>
+        </button>
+        <button class="preset-icon" id="btnSave" type="button" title="Save custom preset" aria-label="Save preset">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3"/><path d="M8 21v-7h8v7"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <section class="eq-row">
+      <div class="side-meter side-meter-input" aria-label="Global input audio stereo level meter">
+        <span class="meter-title">IN</span>
+        <div class="meter-lanes">
+          <div class="meter-lane" aria-hidden="true"><i id="inputMeterLeft"></i></div>
+          <div class="meter-lane" aria-hidden="true"><i id="inputMeterRight"></i></div>
+        </div>
+        <div class="meter-letters"><span>L</span><span>R</span></div>
+        <strong id="inputMeterReadout">-inf</strong>
+      </div>
+
+      <section class="display-wrap" data-spectrum-view="post">
+        <div class="eq-card-head">
+          <div class="eq-title-block">
+            <span class="lbl"><svg class="head-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c2 0 3-7 5-7s3 14 5 14 3-9 5-9 3 4 5 4"/></svg> Equalizer</span>
+            <h2>Precision parametric</h2>
+          </div>
+          <div class="eq-head-tools">
+            <label class="module-preset eq-preset">
+              <span>Preset</span>
+              <select id="eqPresetSelect" class="ak-select" data-plugin-preset="eq" aria-label="EQ preset"></select>
+            </label>
+            <div class="spectrum-toolbar" id="spectrumToolbar" aria-label="Spectrum monitor mode">
+              <span>Spectrum</span>
+              <button class="spectrum-mode-btn" data-spectrum-mode="pre" type="button" aria-pressed="false" title="Input spectrum before processing">PRE</button>
+              <button class="spectrum-mode-btn on" data-spectrum-mode="post" type="button" aria-pressed="true" title="Output spectrum after processing">POST</button>
+            </div>
+            <button class="fx-switch" id="bypassEq" type="button" aria-pressed="true" title="Bypass EQ"><svg class="power-ico" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg></button>
+          </div>
+        </div>
+        <svg class="display" id="svg" preserveAspectRatio="none" aria-label="Interactive parametric equalizer graph"></svg>
+        <div class="readout" id="readout"></div>
+        <div class="ctx" id="ctx"></div>
+      </section>
+
+      <div class="side-meter side-meter-output" aria-label="Global output audio stereo level meter">
+        <span class="meter-title">OUT</span>
+        <div class="meter-lanes">
+          <div class="meter-lane" aria-hidden="true"><i id="outputMeterLeft"></i></div>
+          <div class="meter-lane" aria-hidden="true"><i id="outputMeterRight"></i></div>
+        </div>
+        <div class="meter-letters"><span>L</span><span>R</span></div>
+        <strong id="outputMeterReadout">-inf</strong>
+      </div>
+    </section>
+
+    <section class="inspector" id="inspector">
+      <div class="insp-empty">No band selected — double-click the display to add one</div>
+    </section>
+
+    <section class="lower-grid">
+      <section class="module-card compressor-card">
+        <div class="module-head">
+          <div class="module-title">
+            <span class="lbl"><svg class="head-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 12h12M4 16h8"/></svg> Compressor</span>
+          </div>
+          <div class="module-head-tools">
+            <label class="module-preset">
+              <span>Preset</span>
+              <select id="compressorPresetSelect" class="ak-select" data-plugin-preset="compressor" aria-label="Compressor preset"></select>
+            </label>
+            <button class="fx-switch" id="bypassCompressor" type="button" aria-pressed="false" title="Bypass compressor"><svg class="power-ico" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg></button>
+          </div>
+        </div>
+        <div class="comp-stage">
+          <canvas id="compressorCanvas" width="560" height="200" aria-label="Compressor transfer curve"></canvas>
+        </div>
+        <div class="control-grid" id="compressorControls"></div>
+      </section>
+
+      <section class="module-card color-card" id="colorCard">
+        <div class="module-head">
+          <div class="module-title">
+            <span class="lbl"><svg class="head-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg> Color &middot; Harmonics</span>
+          </div>
+          <div class="module-head-tools compact">
+            <label class="module-preset">
+              <span>Preset</span>
+              <select id="colorPresetSelect" class="ak-select" data-plugin-preset="color" aria-label="Color preset"></select>
+            </label>
+            <button class="fx-switch" id="bypassColor" type="button" aria-pressed="false" title="Bypass color"><svg class="power-ico" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg></button>
+            <span class="module-badge" id="colorModeBadge">Clean</span>
+          </div>
+        </div>
+        <canvas id="colorCanvas" width="520" height="184" aria-label="Harmonic saturation visualizer"></canvas>
+        <div class="control-grid" id="colorControls"></div>
+      </section>
+
+      <section class="module-card width-card" id="widthCard">
+        <div class="module-head">
+          <div class="module-title">
+            <span class="lbl"><svg class="head-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M3 12l4-4M3 12l4 4M21 12l-4-4M21 12l-4 4"/></svg> Stereo Width</span>
+          </div>
+          <div class="module-head-tools">
+            <label class="module-preset">
+              <span>Preset</span>
+              <select id="widthPresetSelect" class="ak-select" data-plugin-preset="width" aria-label="Width preset"></select>
+            </label>
+            <button class="fx-switch" id="bypassWidth" type="button" aria-pressed="false" title="Bypass width"><svg class="power-ico" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg></button>
+          </div>
+        </div>
+        <div class="stereo-visual" aria-label="Stereo width field visualizer" aria-live="off">
+          <div class="width-band-grid" id="widthBandGrid">
+            <div class="width-band-row" data-band="low" title="Low band stereo width">
+              <span class="band-name">Low</span>
+              <div class="band-meter"><span class="band-meter-fill" id="widthBandLowFill"></span></div>
+              <strong class="band-value" id="widthBandLowValue">0%</strong>
+            </div>
+            <div class="width-band-row" data-band="mid" title="Mid band stereo width">
+              <span class="band-name">Mid</span>
+              <div class="band-meter"><span class="band-meter-fill" id="widthBandMidFill"></span></div>
+              <strong class="band-value" id="widthBandMidValue">0%</strong>
+            </div>
+            <div class="width-band-row" data-band="high" title="High band stereo width">
+              <span class="band-name">High</span>
+              <div class="band-meter"><span class="band-meter-fill" id="widthBandHighFill"></span></div>
+              <strong class="band-value" id="widthBandHighValue">0%</strong>
+            </div>
+          </div>
+          <div class="corr-band-grid" aria-label="3-band stereo correlation">
+            <div class="corr-band-row" data-band="low" title="Low band correlation"><span class="corr-mini-track"><i id="widthBandLowCorrelationBar"></i></span><span class="band-correlation" id="widthBandLowCorrelation">+1.00</span></div>
+            <div class="corr-band-row" data-band="mid" title="Mid band correlation"><span class="corr-mini-track"><i id="widthBandMidCorrelationBar"></i></span><span class="band-correlation" id="widthBandMidCorrelation">+1.00</span></div>
+            <div class="corr-band-row" data-band="high" title="High band correlation"><span class="corr-mini-track"><i id="widthBandHighCorrelationBar"></i></span><span class="band-correlation" id="widthBandHighCorrelation">+1.00</span></div>
+          </div>
+        </div>
+        <div class="control-grid" id="widthControls"></div>
+      </section>
+
+      <section class="module-card output-card" id="limiterCard">
+        <div class="module-head">
+          <div class="module-title">
+            <span class="lbl"><svg class="head-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18V6m0 12h18M7 18V10m4 8V8m4 10v-6m4 6V4"/></svg> Limiter</span>
+          </div>
+          <div class="module-head-tools">
+            <label class="module-preset">
+              <span>Preset</span>
+              <select id="limiterPresetSelect" class="ak-select" data-plugin-preset="limiter" aria-label="Limiter preset"></select>
+            </label>
+            <button class="fx-switch" id="bypassLimiter" type="button" aria-pressed="false" title="Bypass limiter"><svg class="power-ico" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg></button>
+          </div>
+        </div>
+        <div class="meter-stack" aria-label="Limiter input and output stereo meters">
+          <div class="meter-pair" aria-label="Input stereo level">
+            <span class="meter-pair-title">Input</span>
+            <label><span>L</span><meter id="limiterInputMeterLeft" min="0" max="1" value="0"></meter></label>
+            <label><span>R</span><meter id="limiterInputMeterRight" min="0" max="1" value="0"></meter></label>
+          </div>
+          <div class="meter-pair" aria-label="Output stereo level">
+            <span class="meter-pair-title">Output</span>
+            <label><span>L</span><meter id="limiterOutputMeterLeft" min="0" max="1" value="0"></meter></label>
+            <label><span>R</span><meter id="limiterOutputMeterRight" min="0" max="1" value="0"></meter></label>
+          </div>
+        </div>
+        <div class="limiter-status-row">
+          <span id="clipBadge" class="clip-badge">Clean</span>
+          <span class="limit-note">Target GR 0-3 dB &middot; warning above 6 dB</span>
+        </div>
+        <div class="control-grid" id="outputControls"></div>
+      </section>
+    </section>
+
+    <section class="hints">
+      <span><b>Double-click</b> add / remove band</span>
+      <span><b>Drag</b> freq / gain</span>
+      <span><b>Wheel</b> Q &middot; slope</span>
+      <span><b>Ctrl-drag</b> Q</span>
+      <span><b>Shift</b> fine-tune</span>
+      <span><b>Alt-click</b> bypass band</span>
+      <span><b>Right-click</b> menu</span>
+    </section>
+  </main>
+
+  <dialog id="saveDialog" class="save-dialog">
+    <form method="dialog">
+      <h3>Save custom preset</h3>
+      <p>Current EQ, compressor, color, width and limiter settings will be saved locally.</p>
+      <input id="presetNameInput" placeholder="Preset name" autocomplete="off">
+      <menu>
+        <button value="cancel" class="btn" type="submit">Cancel</button>
+        <button id="confirmSavePreset" value="default" class="btn primary" type="submit">Save</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script type="module" src="src/studio/studio.js"></script>
+</body>
+</html>

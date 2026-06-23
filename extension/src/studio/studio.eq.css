@@ -1,0 +1,161 @@
+/* ============================================================================
+   ArSonKuPik Studio — EQ display owner
+   ========================================================================== */
+
+/* ───────────────────── EQ display primitives ───────────────────── */
+.axis-text{fill:var(--muted-dim);font-family:var(--mono);font-size:10px}
+.grid-line{stroke:rgba(255,255,255,.04);stroke-width:1}
+.grid-zero{stroke:rgba(255,255,255,.13);stroke-width:1}
+
+/* Spectrum — sits BEHIND the PEQ line, dark transparent gradient */
+.spec-fill-in{
+  fill:url(#specGradPost);
+  opacity:.95;
+  transition:opacity .18s var(--ease);
+}
+.display-wrap[data-spectrum-view="pre"] .spec-fill-in{fill:url(#specGradPre)}
+
+.spec-stroke{
+  fill:none;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round;
+  opacity:.32;transition:opacity .16s,stroke-width .16s,stroke .16s;
+}
+.spec-stroke-in{stroke:rgba(110,168,255,.45)}
+.spec-stroke-out{stroke:rgba(95,227,214,.45)}
+.spec-stroke.active{opacity:.55;stroke-width:1.1}
+.spec-stroke.ghost{opacity:.16;stroke-width:.7}
+
+/* PEQ master curve — the visual hero */
+.curve{
+  fill:none;stroke:var(--eq);stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round;
+  filter:drop-shadow(0 0 9px rgba(95,227,214,.55)) drop-shadow(0 0 2px rgba(95,227,214,.6));
+}
+.curve.bypassed{stroke:var(--muted-dim);filter:none;opacity:.45;stroke-width:1.6}
+
+.band-curve{fill:none;stroke-width:1.4;opacity:.42}
+.node{cursor:grab}
+.node:active{cursor:grabbing}
+.node-hit{fill:transparent}
+.node-ring{fill:rgba(6,8,12,.78);stroke-width:2.2}
+.node-core{stroke:rgba(6,8,12,.92);stroke-width:1}
+.node.selected .node-ring{stroke-width:2.8;filter:drop-shadow(0 0 10px currentColor)}
+.node.bypassed{opacity:.32}
+
+.readout{
+  position:absolute;pointer-events:none;z-index:5;
+  background:rgba(7,9,14,.94);border:1px solid var(--hair);border-radius:10px;padding:8px 10px;
+  font-family:var(--mono);font-size:11px;color:var(--text);
+  display:none;flex-direction:column;gap:3px;
+  backdrop-filter:blur(10px);transform:translate(-50%,calc(-100% - 14px));
+  white-space:nowrap;box-shadow:var(--shadow-pop);
+}
+.readout .r-row{display:flex;justify-content:space-between;gap:16px}
+.readout .r-k{color:var(--muted-dim)}
+.readout .r-v{color:var(--text);font-weight:600}
+.ctx{
+  position:absolute;z-index:20;min-width:166px;
+  background:rgba(17,21,30,.97);border:1px solid var(--hair);border-radius:12px;padding:6px;
+  display:none;flex-direction:column;backdrop-filter:blur(12px);box-shadow:var(--shadow-pop);
+}
+.ctx button{
+  text-align:left;font-family:var(--sans);font-size:12.5px;color:var(--text);
+  background:none;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;transition:.1s;
+}
+.ctx button:hover{background:var(--raise)}
+.ctx button.danger{color:var(--danger)}
+.ctx .ctx-sep{height:1px;background:var(--border-soft);margin:5px 2px}
+.ctx .kbd{font-family:var(--mono);font-size:10px;color:var(--muted-dim)}
+
+/* ───────────────────── EQ row: meters docked tight to display ───────────────────── */
+.eq-row{
+  position:relative;display:block;margin:0 24px;min-width:0;
+}
+.eq-row > .display-wrap{width:100%;min-width:0;margin:0}
+
+/* Side meters — floating sticky rail; removed from EQ layout width */
+.side-meter{
+  position:fixed;top:138px;
+  flex:none;width:58px;height:clamp(300px,calc(100vh - 112px),480px);min-height:0;z-index:18;
+  display:grid;grid-template-rows:auto 1fr auto auto;gap:6px;
+  padding:9px 7px 8px;border:1px solid rgba(255,255,255,.07);border-radius:14px;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),transparent 12%),
+    linear-gradient(180deg,rgba(14,17,24,.96),rgba(6,8,13,.96));
+  box-shadow:0 24px 60px -36px #000, inset 0 1px 0 rgba(255,255,255,.045);
+  backdrop-filter:blur(12px);
+}
+.side-meter-input{left:max(10px,calc(50vw - 590px - 28px))}
+.side-meter-output{right:max(10px,calc(50vw - 590px - 22px))}
+.meter-title{font-family:var(--mono);text-align:center}
+.side-meter .meter-title{font-size:8.5px;letter-spacing:.22em;color:var(--muted);font-weight:800}
+.side-meter-input .meter-title{color:color-mix(in srgb,var(--brand-arson-1) 60%,var(--muted))}
+.side-meter-output .meter-title{color:color-mix(in srgb,var(--cyan) 70%,var(--muted))}
+.meter-lanes{display:grid;grid-template-columns:1fr 1fr;gap:5px;min-height:0;position:relative}
+.meter-lane{
+  position:relative;overflow:hidden;width:auto;border-radius:5px;
+  background:
+    linear-gradient(180deg,rgba(255,107,107,.06) 0%,rgba(245,185,91,.05) 14%,transparent 30%),
+    linear-gradient(180deg,rgba(255,255,255,.03),rgba(0,0,0,.55));
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04), inset 0 -8px 16px -8px rgba(0,0,0,.6);
+}
+.meter-lane::before{content:"";position:absolute;left:0;right:0;top:10%;height:1px;background:rgba(255,107,107,.45);z-index:2}
+.meter-lane::after{content:"";position:absolute;left:0;right:0;top:26%;height:1px;background:rgba(245,185,91,.38);z-index:2}
+.meter-lane i{
+  position:absolute;left:0;right:0;bottom:0;height:100%;display:block;
+  transform:scaleY(.02);transform-origin:bottom center;border-radius:5px;
+  background:linear-gradient(0deg,#2BB87A 0 46%,#5FE3D6 64%,#F5B95B 82%,#FF6B6B 95%);
+  box-shadow:0 0 14px rgba(95,227,214,.32);
+  transition:transform .22s cubic-bezier(.2,.8,.2,1),filter .22s var(--ease);
+}
+.meter-lane i.hot{filter:brightness(1.12) saturate(1.15)}
+.meter-lane i.clip{filter:brightness(1.25) saturate(1.4);box-shadow:0 0 22px rgba(255,107,107,.65)}
+.meter-letters{display:grid;grid-template-columns:1fr 1fr;gap:5px;font-family:var(--mono);font-size:7px;color:var(--muted-dim);text-align:center;letter-spacing:.1em}
+.side-meter strong{font-family:var(--mono);text-align:center;font-size:10px;color:var(--text-2);letter-spacing:-.03em;font-weight:600;white-space:nowrap;min-width:42px}
+
+/* ───────────────────── Master EQ display owner ───────────────────── */
+.display-wrap{
+  --accent:var(--eq);
+  position:relative;padding:58px 0 0;
+  border:1px solid var(--border);border-radius:16px;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(98,230,216,.04), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,.012), transparent 26%),
+    var(--panel);
+  overflow:visible;
+  box-shadow:0 18px 62px -40px #000, inset 0 1px 0 rgba(255,255,255,.035), inset 0 0 0 1px rgba(255,255,255,.02);
+}
+.display{display:block;width:100%;height:354px;touch-action:none;cursor:crosshair}
+.display-wrap.is-bypassed{opacity:.7;filter:saturate(.5)}
+
+.eq-card-head{
+  position:absolute;top:11px;left:14px;right:14px;z-index:12;
+  display:grid;grid-template-columns:minmax(140px,1fr) auto;align-items:center;gap:14px;pointer-events:none;
+}
+.eq-card-head>div,.eq-title-block{pointer-events:auto}
+.eq-card-head h2{margin:2px 0 0;font-size:13px;font-weight:700;letter-spacing:-.025em;color:var(--text)}
+.eq-card-head .lbl{font-size:8.5px;display:inline-flex;align-items:center;gap:6px}
+.eq-head-tools{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;margin:0;pointer-events:auto}
+
+.head-ico{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+
+.module-preset{position:relative;display:grid;grid-template-columns:auto minmax(128px,150px);align-items:center;gap:7px;min-width:0;width:auto;color:var(--muted-dim)}
+.module-preset span{font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted-dim);font-weight:800;margin:0}
+.eq-preset{grid-template-columns:auto 132px}
+
+.spectrum-toolbar{
+  position:relative;inset:auto;height:30px;flex:0 0 auto;
+  display:inline-flex;align-items:center;gap:4px;padding:3px 4px;border-radius:999px;
+  background:rgba(5,7,12,.74);border:1px solid rgba(255,255,255,.07);
+  box-shadow:none;backdrop-filter:blur(12px);
+}
+.spectrum-toolbar span{
+  padding:0 7px 0 8px;font-family:var(--mono);font-size:8px;text-transform:uppercase;
+  letter-spacing:.14em;color:var(--muted-dim);font-weight:700;
+}
+.spectrum-mode-btn{
+  height:22px;min-width:36px;border:0;border-radius:99px;background:transparent;color:var(--muted);
+  font-family:var(--mono);font-size:8px;letter-spacing:.09em;font-weight:800;cursor:pointer;transition:.14s var(--ease);
+}
+.spectrum-mode-btn:hover{color:var(--text)}
+.spectrum-mode-btn.on{color:#041D1B;background:linear-gradient(180deg,var(--cyan),#37B7AC);box-shadow:0 0 18px -8px var(--cyan), inset 0 1px 0 rgba(255,255,255,.4)}

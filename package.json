@@ -1,0 +1,21 @@
+{
+  "name": "arsonkupik",
+  "version": "0.3.34",
+  "private": true,
+  "description": "ArSonKuPik public source, documentation, Chrome Web Store package tooling, and GitHub Pages site.",
+  "type": "module",
+  "scripts": {
+    "validate": "npm run validate:extension && npm run validate:site && npm run validate:repo",
+    "validate:extension": "cd extension && node --check src/background/service-worker.js && node --check src/offscreen/offscreen.js && node --check src/popup/popup.js && node --check src/studio/studio.js && node --check src/shared/audio-devices.js && node --check src/shared/messaging.js && node --check src/shared/presets.js && node --check src/shared/sfeq-rta.js && node tools/css-ownership-audit.mjs && node tools/extension-release-audit.mjs",
+    "validate:site": "node scripts/validate-site.mjs",
+    "validate:repo": "node scripts/audit-public-repo.mjs && node scripts/validate-workflows.mjs",
+    "package:webstore": "node scripts/package-webstore.mjs",
+    "package:source": "node scripts/package-source.mjs",
+    "release:notes": "node scripts/generate-release-notes.mjs",
+    "release:checksums": "node scripts/generate-checksums.mjs",
+    "release:check": "npm run validate && npm run package:webstore && npm run package:source && npm run release:notes && npm run release:checksums"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

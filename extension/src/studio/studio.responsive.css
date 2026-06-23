@@ -1,0 +1,59 @@
+/* ============================================================================
+   ArSonKuPik Studio — Responsive owner
+   ========================================================================== */
+
+@media(min-width:1181px){.app{max-width:1180px}}
+
+@media(max-width:980px){
+  .eq-row{margin-left:18px;margin-right:18px}
+  .side-meter{width:52px;height:clamp(280px,calc(100vh - 112px),420px);min-height:0;top:138px}
+  .side-meter-input{left:8px}
+  .side-meter-output{right:8px}
+  .inspector,.lower-grid,.hints{margin-left:18px;margin-right:18px}
+  .rack-row{grid-template-columns:1fr;align-items:stretch}
+  .chain-actions{justify-content:flex-end}
+  .lower-grid{grid-template-columns:1fr}
+  .eq-card-head{grid-template-columns:1fr;position:relative;top:auto;left:auto;right:auto;margin:0 12px 10px;padding:0}
+  .display-wrap{padding-top:12px}
+  .eq-head-tools{justify-content:space-between;flex-wrap:wrap}
+  .mini-meter{margin-left:0;max-width:none}
+  .module-head{grid-template-columns:1fr}
+  .module-head-tools{justify-content:flex-start;max-width:none}
+  .mini-meter{max-width:none}
+  .comp-stage{display:block}
+}
+@media(max-width:760px){
+  .side-meter{display:none}
+  .eq-row{margin:0 14px}
+}
+@media(max-width:860px){
+  .app{padding-left:28px;padding-right:28px}
+  .topbar{align-items:flex-start;flex-wrap:wrap}
+  .source{order:3;width:100%;max-width:none}
+  .topbar-output-device{order:4;width:100%;max-width:none}
+  .tools{order:5;width:100%;justify-content:flex-start}
+  .display{height:340px}
+  .spectrum-toolbar span{display:none}
+}
+@media(max-width:560px){
+  .app{padding:16px 20px 36px}
+  .display{height:300px}
+  .rack-row{top:6px}
+  .chain-label{flex:0 0 100%;margin-bottom:2px}
+  .brand-text span{display:none}
+  .inspector{gap:12px}
+  .insp-actions{margin-left:0}
+  .seg button{padding:5px 8px}
+  .field .val{width:84px}
+  .btn{padding:7px 10px}
+  .module-preset{width:min(100%,148px);min-width:126px}
+  .topbar-output-device .topbar-device-control{align-items:flex-start;flex-direction:column;height:auto;gap:5px}
+  .topbar-output-device .topbar-device-control label{width:100%;grid-template-columns:1fr}
+  .control-grid{justify-content:space-between}
+  .knob-control{width:72px}
+}
+
+@media (prefers-reduced-motion: reduce){
+  .source.active .dot{animation:none}
+  *{transition-duration:.01ms}
+}

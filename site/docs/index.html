@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Docs — ArSonKuPik</title><meta name="description" content="ArSonKuPik documentation for users, maintainers, Chrome Web Store package, privacy, and release automation."><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/site.css"></head>
+<body>
+<header class="nav"><div class="container nav-inner"><a class="brand" href="../"><img src="../assets/icon-128.png" alt="">ArSonKuPik</a><nav class="nav-links"><a href="../install/">Install</a><a href="../privacy/">Privacy</a><a href="../support/">Support</a><a href="../wiki/">Wiki</a></nav></div></header>
+<main class="doc"><div class="container"><article>
+<h1>Documentation</h1>
+<p>ArSonKuPik is a Manifest V3 Chrome extension for local tab audio enhancement. The public repository includes extension source, release tooling, documentation, landing pages, and wiki source.</p>
+<div class="toc">
+<a href="#development">Development quick start</a>
+<a href="#modules">Audio modules</a>
+<a href="#webstore">Chrome Web Store package</a>
+<a href="#release">Release automation</a>
+<a href="#pages">GitHub Pages</a>
+<a href="#safety">Safety posture</a>
+</div>
+<h2 id="development">Development quick start</h2>
+<pre><code>npm run validate
+npm run package:webstore</code></pre>
+<p>Then open <code>chrome://extensions</code>, enable Developer mode, and load the unpacked extension from <code>extension/</code>.</p>
+<h2 id="modules">Audio modules</h2>
+<ul><li>Precision EQ</li><li>Compressor</li><li>Analog 4-band color</li><li>Multiband stereo width</li><li>Limiter</li><li>A/B snapshots and smart presets</li><li>Fluid visual metering</li></ul>
+<h2 id="webstore">Chrome Web Store package</h2>
+<p>Run <code>npm run package:webstore</code>. Upload the generated <code>*-webstore-upload.zip</code> from <code>release/</code> manually to Chrome Web Store Developer Dashboard.</p>
+<h2 id="release">Release automation</h2>
+<p>A tag such as <code>v0.3.34</code> triggers GitHub Actions to validate, package, generate checksums, generate release notes, and attach assets to a GitHub Release. It does not auto-submit to Chrome Web Store and does not build CRX packages.</p>
+<h2 id="pages">GitHub Pages</h2>
+<p>The static site is located in <code>site/</code>. The Pages workflow deploys it from <code>main</code> after link and metadata validation.</p>
+<h2 id="safety">Safety posture</h2>
+<p>The project avoids host permissions, content scripts, remote executable code, Chrome Web Store API credentials, private keys, and CRX distribution workflows.</p>
+</article></div></main>
+<footer class="footer"><div class="container">© 2026 Tutorial Mas Ari.</div></footer>
+</body></html>

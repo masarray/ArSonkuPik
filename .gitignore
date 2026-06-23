@@ -1,0 +1,25 @@
+# Dependencies and editor state
+node_modules/
+.DS_Store
+.vscode/
+.idea/
+
+# Local build output
+/dist/
+/tmp/
+/release/*.zip
+/release/*.sha256
+/release/RELEASE_NOTES.md
+*.log
+
+# Local Chrome profiles or unpacked test data
+.chrome-test-profile/
+
+# Sensitive material: never commit keys or store/API credentials
+*.pem
+*.key
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example

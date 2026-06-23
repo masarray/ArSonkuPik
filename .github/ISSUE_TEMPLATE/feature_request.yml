@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest an improvement aligned with local tab audio enhancement
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or user need
+      description: What should this improve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Keep it aligned with the extension's single purpose.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Audio engine
+        - Studio UI
+        - Popup UI
+        - Output routing
+        - Presets
+        - Documentation
+        - Chrome Web Store packaging
+    validations:
+      required: true

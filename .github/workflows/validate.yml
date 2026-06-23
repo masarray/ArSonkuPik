@@ -1,0 +1,36 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Extension, site, and repository checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate source
+        run: npm run validate
+      - name: Build Web Store ZIP smoke test
+        run: npm run package:webstore
+      - name: Upload Web Store ZIP test artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arsonkupik-webstore-upload-${{ github.sha }}
+          path: release/*-webstore-upload.zip
+          retention-days: 7

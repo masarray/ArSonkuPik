@@ -1,0 +1,10 @@
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.zip binary
+
+# Generated release artifacts must not be part of source archives.
+release/*.zip export-ignore
+release/*.sha256 export-ignore
+release/RELEASE_NOTES.md export-ignore
+node_modules export-ignore

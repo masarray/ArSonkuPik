@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+  <link rel="shortcut icon" href="icons/favicon.ico">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ArSonKuPik</title>
+  <link rel="stylesheet" href="src/popup/popup.css">
+</head>
+<body>
+  <main class="popup-shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">Browser Mastering</div>
+        <h1><span class="brand-arson">ArSon</span><span class="brand-kupik">KuPik</span></h1>
+      </div>
+      <span id="statusDot" class="status-dot" title="Engine status"></span>
+    </header>
+
+    <section class="source-card">
+      <div class="source-meta">
+        <span class="label">Source</span>
+        <strong id="sourceTitle">No active capture</strong>
+      </div>
+      <button id="startStopButton" class="primary-button" type="button">Start Enhance</button>
+      <p id="hintText" class="hint">Audio is processed locally. No recording, no upload.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title-row">
+        <span>Quick preset</span>
+      </div>
+      <div class="preset-select-row">
+        <select id="presetSelect" aria-label="Master preset"></select>
+      </div>
+    </section>
+
+    <section class="compact-controls">
+      <div class="device-row">
+        <label>
+          <span>Output device</span>
+          <select id="audioOutputSelect"></select>
+        </label>
+      </div>
+      <p id="audioOutputHint" class="device-hint">System default output.</p>
+      <label class="slider-row" hidden>
+        <span>Output</span>
+        <output id="outputGainValue">0.0 dB</output>
+        <input id="outputGain" min="-18" max="12" step="0.1" value="0.5" type="range">
+      </label>
+      <label class="switch-row" hidden>
+        <span>Limiter safety</span>
+        <input id="limiterToggle" type="checkbox" checked>
+      </label>
+    </section>
+
+    <button id="openStudioButton" class="studio-button" type="button">Open Studio Panel</button>
+  </main>
+  <script type="module" src="src/popup/popup.js"></script>
+</body>
+</html>
