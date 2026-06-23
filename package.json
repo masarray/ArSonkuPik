@@ -1,6 +1,6 @@
 {
   "name": "arsonkupik",
-  "version": "0.3.40",
+  "version": "0.3.42",
   "private": true,
   "description": "ArSonKuPik public source, documentation, Chrome Web Store package tooling, and GitHub Pages site.",
   "type": "module",

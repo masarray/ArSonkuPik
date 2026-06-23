@@ -200,7 +200,7 @@ async function init() {
 
 function bindUiEvents() {
   if (ui.startStopButton) {
-    ui.startStopButton.addEventListener('click', async () => {
+    ui.startStopButton.addEventListener('click', async (event) => {
       if (busy) return;
       busy = true;
       ui.startStopButton.disabled = true;

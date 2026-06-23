@@ -97,6 +97,6 @@ See [`docs/PRIVACY_POLICY.md`](docs/PRIVACY_POLICY.md).
 
 ## Current status
 
-Version: **0.3.40**
+Version: **0.3.42**
 
 This repository is prepared as a professional public-source release and Chrome Web Store candidate. Run the manual test plan before public submission, especially the long-run audio stability test.

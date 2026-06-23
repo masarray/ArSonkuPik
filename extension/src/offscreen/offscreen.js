@@ -122,6 +122,9 @@ class AudioEnhancerEngine {
     this.limiterDrive = null;
     this.softClipper = null;
     this.outputGain = null;
+    this.bypassGain = null;
+    this.processedGain = null;
+    this.outputMixGain = null;
     this.inputAnalyser = null;
     this.outputAnalyser = null;
     this.correlationSplitter = null;
@@ -193,6 +196,9 @@ class AudioEnhancerEngine {
       this.limiter.release.value = this.state.output.punchProtect ? 0.08 : 0.055;
 
       this.outputGain = this.context.createGain();
+      this.bypassGain = this.context.createGain();
+      this.processedGain = this.context.createGain();
+      this.outputMixGain = this.context.createGain();
       this.rtaFftSize = chooseRtaFftSize();
       this.inputAnalyser = this.createRtaAnalyser();
       this.outputAnalyser = this.createRtaAnalyser();
@@ -267,6 +273,9 @@ class AudioEnhancerEngine {
     this.limiterDrive = null;
     this.softClipper = null;
     this.outputGain = null;
+    this.bypassGain = null;
+    this.processedGain = null;
+    this.outputMixGain = null;
     this.inputAnalyser = null;
     this.outputAnalyser = null;
     this.correlationSplitter = null;
@@ -598,6 +607,9 @@ class AudioEnhancerEngine {
       this.softClipper,
       this.limiter,
       this.outputGain,
+      this.bypassGain,
+      this.processedGain,
+      this.outputMixGain,
       this.outputAnalyser,
       this.correlationSplitter,
       this.leftAnalyser,
@@ -623,15 +635,16 @@ class AudioEnhancerEngine {
       this.inputRightAnalyser.connect(this.meterSink);
     }
 
-    if (this.state.output.bypass) {
-      // Bypass still runs through Smart headroom normalization + restore so the
-      // A/B compares the creative processing at a matched, safe level instead of
-      // a destructive full-scale passthrough.
-      let bypassCursor = this.inputAnalyser.connect(this.inputGain).connect(this.smartHeadroomGain);
-      if (this.smartMakeupGain) bypassCursor = bypassCursor.connect(this.smartMakeupGain);
-      bypassCursor = bypassCursor.connect(this.outputGain);
-      this.connectOutputMetersAndDestination(bypassCursor);
-      return;
+    const isBypassed = Boolean(this.state.output.bypass);
+    if (this.bypassGain && this.processedGain && this.outputMixGain) {
+      // Keep raw and enhanced paths connected in parallel. The ON/OFF button only
+      // crossfades these two gains, so Chrome tab capture stays warm and the audio
+      // waveform does not jump to a newly connected graph. That avoids the small
+      // "cret/tekk" click caused by instant bypass rewiring.
+      this.bypassGain.gain.value = isBypassed ? 1 : 0;
+      this.processedGain.gain.value = isBypassed ? 0 : 1;
+      this.outputMixGain.gain.value = 1;
+      this.inputAnalyser.connect(this.bypassGain).connect(this.outputMixGain);
     }
 
     let cursor = this.inputAnalyser.connect(this.inputGain).connect(this.smartHeadroomGain).connect(this.safetyHighPass);
@@ -650,7 +663,12 @@ class AudioEnhancerEngine {
     }
 
     cursor = cursor.connect(this.outputGain);
-    this.connectOutputMetersAndDestination(cursor);
+    if (this.processedGain && this.outputMixGain) {
+      cursor.connect(this.processedGain).connect(this.outputMixGain);
+      this.connectOutputMetersAndDestination(this.outputMixGain);
+    } else {
+      this.connectOutputMetersAndDestination(cursor);
+    }
   }
 
   connectOutputMetersAndDestination(cursor) {
@@ -1161,6 +1179,34 @@ class AudioEnhancerEngine {
   }
 
 
+  rampGainParam(param, target, fadeSeconds = 0.09) {
+    if (!this.context || !param) return;
+    const now = this.context.currentTime;
+    const targetValue = Math.max(0, Number(target));
+    try {
+      if (typeof param.cancelAndHoldAtTime === 'function') {
+        param.cancelAndHoldAtTime(now);
+      } else {
+        const current = Number.isFinite(param.value) ? param.value : targetValue;
+        param.cancelScheduledValues(now);
+        param.setValueAtTime(current, now);
+      }
+      param.linearRampToValueAtTime(targetValue, now + Math.max(0.012, fadeSeconds));
+    } catch {
+      param.value = targetValue;
+    }
+  }
+
+  crossfadeEnhancePower(isBypassed) {
+    if (!this.context || !this.bypassGain || !this.processedGain) return false;
+    const fade = isBypassed ? 0.075 : 0.115;
+    // OFF → ON gets a slightly longer enhanced fade-in so compressor/limiter
+    // state and filter phase settle invisibly instead of creating a tick.
+    this.rampGainParam(this.bypassGain.gain, isBypassed ? 1 : 0, isBypassed ? fade : 0.085);
+    this.rampGainParam(this.processedGain.gain, isBypassed ? 0 : 1, fade);
+    return true;
+  }
+
   async applyPreset(preset) {
     if (!preset) throw new Error('Preset not found.');
     this.state = this.prepareState(applyPresetToState(this.state, preset));
@@ -1178,8 +1224,8 @@ class AudioEnhancerEngine {
     this.state = this.prepareState(deepMerge(this.state, patch));
     if (patch.eq && this.context) this.eqNodeGroups = this.state.eq.map((band) => this.createEqNodeGroup(band));
     this.applyAllParams();
-    const graphTogglePatch = (patch.output?.bypass !== undefined)
-      || (patch.output?.limiterEnabled !== undefined)
+    const bypassPatch = patch.output?.bypass !== undefined;
+    const graphTogglePatch = (patch.output?.limiterEnabled !== undefined)
       || (patch.compressor?.enabled !== undefined)
       || (patch.color?.enabled !== undefined)
       || (patch.width?.enabled !== undefined)
@@ -1187,6 +1233,11 @@ class AudioEnhancerEngine {
       || Boolean(patch.eq);
     if (graphTogglePatch) {
       this.connectGraph();
+    }
+    if (bypassPatch && !graphTogglePatch) {
+      this.crossfadeEnhancePower(Boolean(this.state.output.bypass));
+    } else if (bypassPatch) {
+      this.crossfadeEnhancePower(Boolean(this.state.output.bypass));
     }
     if (patch.output?.outputDeviceId !== undefined || patch.output?.outputDeviceLabel !== undefined) {
       await this.applyOutputDevice();

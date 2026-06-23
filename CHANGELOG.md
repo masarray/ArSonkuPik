@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.42 - Clickless warm bypass crossfade
+
+- Reworked Enhance ON/OFF warm bypass to keep raw and processed paths connected in parallel.
+- Added short gain crossfade between raw passthrough and enhanced chain to remove the audible cret/tekk click when switching OFF to ON.
+- Avoids instant graph rewiring during bypass-only power toggles while keeping tab capture warm so YouTube does not renegotiate playback.
+
+## 0.3.41 - Audible warm bypass and robust Studio singleton
+
+- Fixed Enhance On/Off warm bypass so Enhance Off is now a true raw passthrough inside the existing capture stream.
+- Kept tab capture warm to avoid YouTube playback renegotiation, but bypass now skips the creative chain, smart headroom/makeup, limiter, and output gain.
+- Hardened Open Studio Panel with a storage-session tab id, runtime context lookup, an opening lock, and duplicate Studio tab cleanup.
+- Fixed Studio start/stop modifier key handling so Shift/Alt full release works reliably from Studio.
+
 ## 0.3.40 - Warm bypass and single Studio tab
 
 - Moved the Color mode badge beside the module preset label so the panel header stays compact and color-matched.

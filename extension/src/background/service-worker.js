@@ -4,12 +4,14 @@ const OFFSCREEN_URL = 'offscreen.html';
 const STORE_KEYS = {
   state: 'arAudioState',
   customPresets: 'arAudioCustomPresets',
-  domainOutputRoutes: 'arAudioDomainOutputRoutes'
+  domainOutputRoutes: 'arAudioDomainOutputRoutes',
+  studioTabId: 'arAudioStudioTabId'
 };
 
 let lastState = createDefaultState();
 let creatingOffscreenDocument = null;
 let studioTabId = null;
+let openingStudioPromise = null;
 
 function createSilentMeters() {
   return {
@@ -68,7 +70,10 @@ chrome.tabCapture?.onStatusChanged?.addListener((info) => {
 });
 
 chrome.tabs?.onRemoved?.addListener((tabId) => {
-  if (Number(tabId) === Number(studioTabId)) studioTabId = null;
+  if (Number(tabId) === Number(studioTabId)) {
+    studioTabId = null;
+    clearStoredStudioTabId().catch(() => {});
+  }
   markCaptureInactiveIfMatches(tabId).catch(() => {});
 });
 
@@ -111,7 +116,7 @@ async function handleBackgroundMessage(message, sender = null) {
     case 'OPEN_STUDIO':
       return openStudioSingleton();
     case 'REGISTER_STUDIO':
-      if (sender?.tab?.id) studioTabId = sender.tab.id;
+      if (sender?.tab?.id) await rememberStudioTabId(sender.tab.id);
       return { ok: true };
     case 'APPLY_PRESET':
       return applyPresetCommand(message.preset || await findPresetById(message.presetId));
@@ -158,56 +163,150 @@ async function getStateWithPresets() {
 }
 
 async function openStudioSingleton() {
+  if (openingStudioPromise) return openingStudioPromise;
+  openingStudioPromise = openStudioSingletonCore().finally(() => {
+    openingStudioPromise = null;
+  });
+  return openingStudioPromise;
+}
+
+async function openStudioSingletonCore() {
   const sourceTabId = await getActiveCaptureCandidateTabId();
   const path = sourceTabId ? `studio.html?sourceTabId=${sourceTabId}` : 'studio.html';
   const desiredUrl = chrome.runtime.getURL(path);
   const existing = await findExistingStudioTab();
   if (existing?.id) {
-    studioTabId = existing.id;
-    const currentUrl = existing.pendingUrl || existing.url || '';
-    const update = { active: true };
-    if (shouldUpdateStudioSourceUrl(currentUrl, sourceTabId)) update.url = desiredUrl;
-    await chrome.tabs.update(existing.id, update);
-    if (existing.windowId && chrome.windows?.update) {
-      await chrome.windows.update(existing.windowId, { focused: true }).catch(() => {});
-    }
+    await rememberStudioTabId(existing.id);
+    await focusStudioTab(existing, desiredUrl, sourceTabId);
+    await closeDuplicateStudioTabs(existing.id);
     return { ok: true, reused: true, tabId: existing.id };
   }
 
   const created = await chrome.tabs.create({ url: desiredUrl, active: true });
-  studioTabId = created?.id || null;
+  await rememberStudioTabId(created?.id || null);
   return { ok: true, reused: false, tabId: studioTabId };
+}
+
+async function focusStudioTab(tab, desiredUrl, sourceTabId) {
+  const currentUrl = tab.pendingUrl || tab.url || '';
+  const update = { active: true };
+  if (!currentUrl || shouldUpdateStudioSourceUrl(currentUrl, sourceTabId)) {
+    update.url = desiredUrl;
+  }
+  await chrome.tabs.update(tab.id, update);
+  if (tab.windowId && chrome.windows?.update) {
+    await chrome.windows.update(tab.windowId, { focused: true }).catch(() => {});
+  }
 }
 
 async function findExistingStudioTab() {
   const studioUrl = chrome.runtime.getURL('studio.html');
-  if (studioTabId) {
-    try {
-      const tab = await chrome.tabs.get(studioTabId);
-      const tabUrl = tab?.pendingUrl || tab?.url || '';
-      if (tabUrl.startsWith(studioUrl)) return tab;
-    } catch {
-      studioTabId = null;
+  const candidateIds = new Set();
+
+  const storedTabId = await getStoredStudioTabId();
+  if (storedTabId) candidateIds.add(Number(storedTabId));
+  if (studioTabId) candidateIds.add(Number(studioTabId));
+
+  for (const tabId of await findStudioTabIdsFromRuntimeContexts()) {
+    candidateIds.add(Number(tabId));
+  }
+
+  for (const tabId of await findStudioTabIdsByTabQuery(studioUrl)) {
+    candidateIds.add(Number(tabId));
+  }
+
+  for (const tabId of candidateIds) {
+    const tab = await getValidStudioTab(tabId, studioUrl);
+    if (tab?.id) {
+      await rememberStudioTabId(tab.id);
+      return tab;
     }
   }
 
+  await clearStoredStudioTabId();
+  return null;
+}
+
+async function getValidStudioTab(tabId, studioUrl) {
+  if (!tabId) return null;
   try {
-    const tabs = await chrome.tabs.query({ url: `${studioUrl}*` });
-    const tab = tabs.find((candidate) => (candidate.pendingUrl || candidate.url || '').startsWith(studioUrl));
-    if (tab?.id) {
-      studioTabId = tab.id;
-      return tab;
-    }
+    const tab = await chrome.tabs.get(Number(tabId));
+    const tabUrl = tab?.pendingUrl || tab?.url || '';
+    // When Chrome does not expose tab.url without the tabs permission, a tab id
+    // that came from storage.session or runtime.getContexts is still trusted for
+    // this browser session. If a URL is visible, require the studio URL prefix.
+    if (!tabUrl || tabUrl.startsWith(studioUrl)) return tab;
   } catch {
-    // URL-scoped tab queries can be unavailable in restricted enterprise setups.
+    return null;
   }
   return null;
+}
+
+async function findStudioTabIdsFromRuntimeContexts() {
+  if (!chrome.runtime.getContexts) return [];
+  try {
+    const studioUrl = chrome.runtime.getURL('studio.html');
+    const contexts = await chrome.runtime.getContexts({ contextTypes: ['TAB'] });
+    return (contexts || [])
+      .filter((context) => String(context.documentUrl || '').startsWith(studioUrl))
+      .map((context) => context.tabId)
+      .filter((tabId) => Number.isInteger(tabId) && tabId > 0);
+  } catch {
+    return [];
+  }
+}
+
+async function findStudioTabIdsByTabQuery(studioUrl) {
+  try {
+    const tabs = await chrome.tabs.query({ url: `${studioUrl}*` });
+    return (tabs || []).map((tab) => tab.id).filter((tabId) => Number.isInteger(tabId) && tabId > 0);
+  } catch {
+    // URL-scoped tab queries can be unavailable without the tabs permission.
+    return [];
+  }
+}
+
+async function closeDuplicateStudioTabs(keepTabId) {
+  const studioUrl = chrome.runtime.getURL('studio.html');
+  const ids = new Set([...(await findStudioTabIdsFromRuntimeContexts()), ...(await findStudioTabIdsByTabQuery(studioUrl))]);
+  ids.delete(Number(keepTabId));
+  const duplicateIds = [...ids].filter((tabId) => Number.isInteger(tabId) && tabId > 0);
+  if (!duplicateIds.length) return;
+  await chrome.tabs.remove(duplicateIds).catch(() => {});
+}
+
+async function getStoredStudioTabId() {
+  if (!chrome.storage?.session) return studioTabId;
+  try {
+    const stored = await chrome.storage.session.get(STORE_KEYS.studioTabId);
+    const tabId = Number(stored?.[STORE_KEYS.studioTabId]);
+    return Number.isInteger(tabId) && tabId > 0 ? tabId : studioTabId;
+  } catch {
+    return studioTabId;
+  }
+}
+
+async function rememberStudioTabId(tabId) {
+  const id = Number(tabId);
+  studioTabId = Number.isInteger(id) && id > 0 ? id : null;
+  if (!chrome.storage?.session) return;
+  if (studioTabId) {
+    await chrome.storage.session.set({ [STORE_KEYS.studioTabId]: studioTabId }).catch(() => {});
+  } else {
+    await chrome.storage.session.remove(STORE_KEYS.studioTabId).catch(() => {});
+  }
+}
+
+async function clearStoredStudioTabId() {
+  studioTabId = null;
+  if (chrome.storage?.session) await chrome.storage.session.remove(STORE_KEYS.studioTabId).catch(() => {});
 }
 
 function shouldUpdateStudioSourceUrl(currentUrl, sourceTabId) {
   if (!sourceTabId) return false;
   try {
     const parsed = new URL(currentUrl);
+    if (!parsed.pathname.endsWith('/studio.html')) return true;
     return Number(parsed.searchParams.get('sourceTabId')) !== Number(sourceTabId);
   } catch {
     return true;
