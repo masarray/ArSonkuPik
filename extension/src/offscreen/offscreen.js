@@ -295,6 +295,8 @@ class AudioEnhancerEngine {
         outputPeak: 0,
         gainReduction: 0,
         compressorGainReduction: 0,
+        compressorGainReductionLeft: 0,
+        compressorGainReductionRight: 0,
         limiterGainReduction: 0,
         inputPeakLeft: 0,
         inputPeakRight: 0,
@@ -1286,6 +1288,8 @@ class AudioEnhancerEngine {
     const outputPeakLeft = this.timeBufferLeft ? getPeak(this.timeBufferLeft) : outputPeak;
     const outputPeakRight = this.timeBufferRight ? getPeak(this.timeBufferRight) : outputPeak;
     const compressorGainReduction = this.state.compressor.enabled ? Math.max(0, Math.abs(this.compressor?.reduction || 0)) : 0;
+    const compressorGainReductionLeft = compressorGainReduction;
+    const compressorGainReductionRight = compressorGainReduction;
     const limiterGainReduction = this.state.output.limiterEnabled ? Math.max(0, Math.abs(this.limiter?.reduction || 0)) : 0;
     this.updateSmartGainStaging(inputPeak, outputPeak, limiterGainReduction);
     const gainReduction = Math.max(compressorGainReduction, limiterGainReduction);
@@ -1301,6 +1305,8 @@ class AudioEnhancerEngine {
       outputPeakRight,
       gainReduction,
       compressorGainReduction,
+      compressorGainReductionLeft,
+      compressorGainReductionRight,
       limiterGainReduction,
       correlation,
       stereoBands,

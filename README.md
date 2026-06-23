@@ -6,6 +6,17 @@
   <img src="site/assets/icon-512.png" width="128" height="128" alt="ArSonKuPik icon">
 </p>
 
+## Screenshots
+
+<p align="center">
+  <img src="site/assets/screenshot/1.jpg" width="640" alt="ArSonKuPik precision equalizer Studio screenshot">
+</p>
+
+| Smart Compression | Color Harmonics | Stereo Width | Limiter Protection |
+| --- | --- | --- | --- |
+| <img src="site/assets/screenshot/2.jpg" width="320" alt="ArSonKuPik smart compression screenshot"> | <img src="site/assets/screenshot/3.jpg" width="320" alt="ArSonKuPik color harmonics screenshot"> | <img src="site/assets/screenshot/4.jpg" width="320" alt="ArSonKuPik stereo width screenshot"> | <img src="site/assets/screenshot/5.jpg" width="320" alt="ArSonKuPik limiter protection screenshot"> |
+
+
 ## Highlights
 
 - **Local audio processing** — tab audio is processed in the browser using Web Audio.
@@ -53,7 +64,7 @@ npm run package:webstore
 Upload the generated file from:
 
 ```text
-release/arsonkupik-extension-v0_3_34-webstore-upload.zip
+release/arsonkupik-extension-v0_3_38-webstore-upload.zip
 ```
 
 The generated ZIP intentionally contains only the runtime files Chrome needs:
@@ -86,6 +97,6 @@ See [`docs/PRIVACY_POLICY.md`](docs/PRIVACY_POLICY.md).
 
 ## Current status
 
-Version: **0.3.34**
+Version: **0.3.38**
 
 This repository is prepared as a professional public-source release and Chrome Web Store candidate. Run the manual test plan before public submission, especially the long-run audio stability test.

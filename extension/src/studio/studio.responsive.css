@@ -20,7 +20,7 @@
   .module-head{grid-template-columns:1fr}
   .module-head-tools{justify-content:flex-start;max-width:none}
   .mini-meter{max-width:none}
-  .comp-stage{display:block}
+  .comp-stage{grid-template-columns:minmax(0,1fr) 48px}
 }
 @media(max-width:760px){
   .side-meter{display:none}
@@ -36,6 +36,11 @@
   .spectrum-toolbar span{display:none}
 }
 @media(max-width:560px){
+  .compressor-card .comp-stage{grid-template-columns:1fr}
+  .comp-gr-meter{height:44px;grid-template-columns:22px 1fr 22px 34px;grid-template-rows:1fr;align-items:center}
+  .comp-gr-lanes{height:22px}
+  .comp-gr-lane i{transform-origin:left center}
+
   .app{padding:16px 20px 36px}
   .display{height:300px}
   .rack-row{top:6px}

@@ -443,6 +443,8 @@ export function createDefaultState() {
       outputPeak: 0,
       gainReduction: 0,
       compressorGainReduction: 0,
+      compressorGainReductionLeft: 0,
+      compressorGainReductionRight: 0,
       limiterGainReduction: 0,
       inputPeakLeft: 0,
       inputPeakRight: 0,

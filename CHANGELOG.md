@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.38
+
+- restored the compressor vertical linked L/R gain-reduction meter beside the compressor transfer canvas
+- wired existing product screenshots into README, root landing page, and GitHub Pages landing page
+- kept startup capture cleanup and popup output-gain state fixes in the public source package
+
+## 0.3.37
+
+- restored background orphan-stream cleanup before requesting a fresh tab capture
+- restored popup output gain rendering from saved engine state instead of a hardcoded value
+
 ## 0.3.36
 
 - fixed Stereo Width startup crash caused by accessing width band filter nodes through the array-based `nodes` list instead of `nodeMap`

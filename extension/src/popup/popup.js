@@ -126,8 +126,9 @@ function render() {
   ui.startStopButton.hidden = false;
   ui.startStopButton.textContent = state.active ? 'Stop Enhance' : 'Start Enhance';
   ui.startStopButton.classList.toggle('danger', Boolean(state.active));
-  ui.outputGain.value = 0.5;
-  ui.outputGainValue.textContent = `${Number(ui.outputGain.value).toFixed(1)} dB`;
+  const outputGain = Number(state.output?.outputGain ?? -1.6);
+  ui.outputGain.value = outputGain;
+  ui.outputGainValue.textContent = `${outputGain.toFixed(1)} dB`;
   ui.limiterToggle.checked = Boolean(state.output?.limiterEnabled);
   renderPresets();
   autoPopulateOutputDevices(state.output?.outputDeviceId).catch((error) => setAudioOutputHint(error.message));

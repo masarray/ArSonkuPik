@@ -63,6 +63,8 @@ let pollingTimer = null;
 let rtaFrame = null;
 let lastMeterPayload = null;
 let displayedCompressorReduction = 0;
+let displayedCompressorReductionLeft = 0;
+let displayedCompressorReductionRight = 0;
 let displayedLimiterReduction = 0;
 let displayedCorrelation = 1;
 let displayedInputLeft = 0;
@@ -157,7 +159,9 @@ const ui = {
   outputMeterRight: document.getElementById('outputMeterRight'),
   inputMeterReadout: document.getElementById('inputMeterReadout'),
   outputMeterReadout: document.getElementById('outputMeterReadout'),
-  gainReductionBar: document.getElementById('gainReductionBar'),
+  gainReductionBar: document.getElementById('compressorReductionLeft') || document.getElementById('gainReductionBar'),
+  compressorReductionLeft: document.getElementById('compressorReductionLeft'),
+  compressorReductionRight: document.getElementById('compressorReductionRight'),
   compressorReductionValue: document.getElementById('compressorReductionValue'),
   clipBadge: document.getElementById('clipBadge'),
   saveDialog: document.getElementById('saveDialog'),
@@ -2116,12 +2120,16 @@ function updateMeters(meters) {
     ? meters.compressorGainReduction
     : (Number.isFinite(meters.gainReduction) ? meters.gainReduction : 0);
   const compressorReduction = clamp(rawCompressorReduction, 0, 36);
-  displayedCompressorReduction += (compressorReduction - displayedCompressorReduction) * 0.34;
+  const compressorReductionLeft = clamp(Number.isFinite(meters.compressorGainReductionLeft) ? meters.compressorGainReductionLeft : compressorReduction, 0, 36);
+  const compressorReductionRight = clamp(Number.isFinite(meters.compressorGainReductionRight) ? meters.compressorGainReductionRight : compressorReduction, 0, 36);
+  displayedCompressorReduction += (compressorReduction - displayedCompressorReduction) * 0.30;
+  displayedCompressorReductionLeft += (compressorReductionLeft - displayedCompressorReductionLeft) * 0.30;
+  displayedCompressorReductionRight += (compressorReductionRight - displayedCompressorReductionRight) * 0.30;
 
-  const grScale = Math.min(1, displayedCompressorReduction / 18);
-  if (ui.gainReductionBar) ui.gainReductionBar.style.transform = `scaleY(${grScale})`;
+  setGainReductionMeter(ui.compressorReductionLeft || ui.gainReductionBar, displayedCompressorReductionLeft);
+  setGainReductionMeter(ui.compressorReductionRight, displayedCompressorReductionRight);
   if (ui.compressorReductionValue) {
-    ui.compressorReductionValue.textContent = `${displayedCompressorReduction.toFixed(1)}`;
+    ui.compressorReductionValue.textContent = `${Math.max(displayedCompressorReductionLeft, displayedCompressorReductionRight, displayedCompressorReduction).toFixed(1)}`;
     ui.compressorReductionValue.classList.toggle('active', displayedCompressorReduction >= 0.2);
   }
 
@@ -2215,6 +2223,11 @@ function setVerticalMeter(element, peak) {
   element.style.transform = `scaleY(${peakToMeterScale(peak)})`;
   element.classList.toggle('hot', peakToDb(peak) > -6);
   element.classList.toggle('clip', peak >= 0.98);
+}
+
+function setGainReductionMeter(element, reductionDb) {
+  if (!element) return;
+  element.style.transform = `scaleY(${Math.min(1, clamp(reductionDb, 0, 24) / 18)})`;
 }
 
 function peakToMeterScale(peak) {

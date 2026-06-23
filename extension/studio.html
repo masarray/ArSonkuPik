@@ -150,8 +150,17 @@
             <button class="fx-switch" id="bypassCompressor" type="button" aria-pressed="false" title="Bypass compressor"><svg class="power-ico" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg></button>
           </div>
         </div>
-        <div class="comp-stage">
+        <div class="comp-stage" aria-label="Compressor transfer curve with linked stereo gain reduction meter">
           <canvas id="compressorCanvas" width="560" height="200" aria-label="Compressor transfer curve"></canvas>
+          <div class="comp-gr-meter" aria-label="Compressor gain reduction meter">
+            <span class="comp-gr-title">GR</span>
+            <div class="comp-gr-lanes" aria-hidden="true">
+              <div class="comp-gr-lane"><i id="compressorReductionLeft"></i></div>
+              <div class="comp-gr-lane"><i id="compressorReductionRight"></i></div>
+            </div>
+            <div class="comp-gr-letters"><span>L</span><span>R</span></div>
+            <strong id="compressorReductionValue">0.0</strong>
+          </div>
         </div>
         <div class="control-grid" id="compressorControls"></div>
       </section>

@@ -10,6 +10,28 @@ const STORE_KEYS = {
 let lastState = createDefaultState();
 let creatingOffscreenDocument = null;
 
+function createSilentMeters() {
+  return {
+    inputPeak: 0,
+    outputPeak: 0,
+    gainReduction: 0,
+    compressorGainReduction: 0,
+    compressorGainReductionLeft: 0,
+    compressorGainReductionRight: 0,
+    limiterGainReduction: 0,
+    inputPeakLeft: 0,
+    inputPeakRight: 0,
+    outputPeakLeft: 0,
+    outputPeakRight: 0,
+    correlation: 1,
+    clipping: false
+  };
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureStorageDefaults();
 });
@@ -167,6 +189,44 @@ function isCapturableTab(tab) {
   }
 }
 
+async function cleanupCaptureBeforeStart() {
+  await safeSendMessage({ target: 'offscreen', type: 'STOP_CAPTURE' });
+  lastState = prepareStateForStorage({
+    ...lastState,
+    active: false,
+    tabId: null,
+    sourceTitle: 'No active capture',
+    meters: createSilentMeters(),
+    updatedAt: Date.now()
+  });
+  await chrome.storage.local.set({ [STORE_KEYS.state]: lastState });
+  await sleep(60);
+}
+
+async function requestCaptureStreamIdWithRetry(tabId) {
+  try {
+    return await chrome.tabCapture.getMediaStreamId({ targetTabId: tabId });
+  } catch (error) {
+    const message = error?.message || String(error);
+    if (!/active stream/i.test(message)) throw error;
+    await cleanupCaptureBeforeStart();
+    return chrome.tabCapture.getMediaStreamId({ targetTabId: tabId });
+  }
+}
+
+async function cleanupFailedStart() {
+  await safeSendMessage({ target: 'offscreen', type: 'STOP_CAPTURE' });
+  lastState = prepareStateForStorage({
+    ...lastState,
+    active: false,
+    tabId: null,
+    sourceTitle: 'No active capture',
+    meters: createSilentMeters(),
+    updatedAt: Date.now()
+  });
+  await chrome.storage.local.set({ [STORE_KEYS.state]: lastState });
+}
+
 async function startEnhance(sourceTabId = null) {
   const tab = await resolveCaptureTab(sourceTabId);
   if (!tab?.id) {
@@ -178,22 +238,30 @@ async function startEnhance(sourceTabId = null) {
   }
 
   await ensureOffscreenDocument();
+  await cleanupCaptureBeforeStart();
 
-  const streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: tab.id });
+  const streamId = await requestCaptureStreamIdWithRetry(tab.id);
   const title = tab.title || 'Current tab';
   await applyStoredDomainOutputRouteForTab(tab);
   const stateBeforeStart = await getStateWithPresets();
 
-  const response = await sendMessageWithResponse({
-    target: 'offscreen',
-    type: 'START_CAPTURE',
-    streamId,
-    tabId: tab.id,
-    sourceTitle: title,
-    initialState: stateBeforeStart
-  });
+  let response = null;
+  try {
+    response = await sendMessageWithResponse({
+      target: 'offscreen',
+      type: 'START_CAPTURE',
+      streamId,
+      tabId: tab.id,
+      sourceTitle: title,
+      initialState: stateBeforeStart
+    });
+  } catch (error) {
+    await cleanupFailedStart();
+    throw error;
+  }
 
   if (!response?.ok) {
+    await cleanupFailedStart();
     throw new Error(response?.error || 'Unable to start audio engine. Reload the extension and try again.');
   }
 
@@ -215,19 +283,7 @@ async function stopEnhance() {
     active: false,
     tabId: null,
     sourceTitle: 'No active capture',
-    meters: {
-      inputPeak: 0,
-      outputPeak: 0,
-      gainReduction: 0,
-      compressorGainReduction: 0,
-      limiterGainReduction: 0,
-      inputPeakLeft: 0,
-      inputPeakRight: 0,
-      outputPeakLeft: 0,
-      outputPeakRight: 0,
-      correlation: 1,
-      clipping: false
-    },
+    meters: createSilentMeters(),
     updatedAt: Date.now()
   });
   await chrome.storage.local.set({ [STORE_KEYS.state]: lastState });
@@ -243,19 +299,7 @@ async function markCaptureInactiveIfMatches(tabId) {
     active: false,
     tabId: null,
     sourceTitle: 'No active capture',
-    meters: {
-      inputPeak: 0,
-      outputPeak: 0,
-      gainReduction: 0,
-      compressorGainReduction: 0,
-      limiterGainReduction: 0,
-      inputPeakLeft: 0,
-      inputPeakRight: 0,
-      outputPeakLeft: 0,
-      outputPeakRight: 0,
-      correlation: 1,
-      clipping: false
-    },
+    meters: createSilentMeters(),
     updatedAt: Date.now()
   });
   await chrome.storage.local.set({ [STORE_KEYS.state]: lastState });
