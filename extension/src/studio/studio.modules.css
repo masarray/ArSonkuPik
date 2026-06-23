@@ -212,6 +212,15 @@
 .module-head-tools .module-preset span{font-size:8px;letter-spacing:.14em;font-weight:800;margin:0}
 .module-head-tools .ak-select{height:30px;border-radius:999px;padding:0 28px 0 12px;font-size:10.8px;background-position:right 12px center,0 0,0 0,0 0}
 
+.color-head-tools .module-preset.has-mode-badge{grid-template-columns:auto auto 128px;gap:7px;align-items:center}
+.color-head-tools .module-preset.has-mode-badge .module-badge{
+  height:24px;min-width:0;padding:0 8px;align-self:center;display:inline-flex;align-items:center;justify-content:center;
+  font-size:8.4px;line-height:1;letter-spacing:.12em;color:var(--color);
+  border-color:color-mix(in srgb,var(--color) 42%,transparent);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--color) 13%,transparent),color-mix(in srgb,var(--color) 6%,transparent));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 0 18px -14px var(--color);
+}
+
 /* FX power switch — icon-only module power */
 .fx-switch{
   position:relative;overflow:hidden;width:32px;height:30px;min-width:32px;border-radius:999px;border:1px solid rgba(255,255,255,.08);

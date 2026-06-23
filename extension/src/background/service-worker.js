@@ -9,6 +9,7 @@ const STORE_KEYS = {
 
 let lastState = createDefaultState();
 let creatingOffscreenDocument = null;
+let studioTabId = null;
 
 function createSilentMeters() {
   return {
@@ -67,6 +68,7 @@ chrome.tabCapture?.onStatusChanged?.addListener((info) => {
 });
 
 chrome.tabs?.onRemoved?.addListener((tabId) => {
+  if (Number(tabId) === Number(studioTabId)) studioTabId = null;
   markCaptureInactiveIfMatches(tabId).catch(() => {});
 });
 
@@ -106,12 +108,11 @@ async function handleBackgroundMessage(message, sender = null) {
       return startEnhance(message.sourceTabId);
     case 'STOP_ENHANCE':
       return stopEnhance();
-    case 'OPEN_STUDIO': {
-      const sourceTabId = await getActiveCaptureCandidateTabId();
-      const path = sourceTabId ? `studio.html?sourceTabId=${sourceTabId}` : 'studio.html';
-      await chrome.tabs.create({ url: chrome.runtime.getURL(path) });
+    case 'OPEN_STUDIO':
+      return openStudioSingleton();
+    case 'REGISTER_STUDIO':
+      if (sender?.tab?.id) studioTabId = sender.tab.id;
       return { ok: true };
-    }
     case 'APPLY_PRESET':
       return applyPresetCommand(message.preset || await findPresetById(message.presetId));
     case 'UPDATE_STATE':
@@ -154,6 +155,63 @@ async function getStateWithPresets() {
     presets: [...FACTORY_PRESETS, ...customPresets],
     currentDomain: context.domain || ''
   };
+}
+
+async function openStudioSingleton() {
+  const sourceTabId = await getActiveCaptureCandidateTabId();
+  const path = sourceTabId ? `studio.html?sourceTabId=${sourceTabId}` : 'studio.html';
+  const desiredUrl = chrome.runtime.getURL(path);
+  const existing = await findExistingStudioTab();
+  if (existing?.id) {
+    studioTabId = existing.id;
+    const currentUrl = existing.pendingUrl || existing.url || '';
+    const update = { active: true };
+    if (shouldUpdateStudioSourceUrl(currentUrl, sourceTabId)) update.url = desiredUrl;
+    await chrome.tabs.update(existing.id, update);
+    if (existing.windowId && chrome.windows?.update) {
+      await chrome.windows.update(existing.windowId, { focused: true }).catch(() => {});
+    }
+    return { ok: true, reused: true, tabId: existing.id };
+  }
+
+  const created = await chrome.tabs.create({ url: desiredUrl, active: true });
+  studioTabId = created?.id || null;
+  return { ok: true, reused: false, tabId: studioTabId };
+}
+
+async function findExistingStudioTab() {
+  const studioUrl = chrome.runtime.getURL('studio.html');
+  if (studioTabId) {
+    try {
+      const tab = await chrome.tabs.get(studioTabId);
+      const tabUrl = tab?.pendingUrl || tab?.url || '';
+      if (tabUrl.startsWith(studioUrl)) return tab;
+    } catch {
+      studioTabId = null;
+    }
+  }
+
+  try {
+    const tabs = await chrome.tabs.query({ url: `${studioUrl}*` });
+    const tab = tabs.find((candidate) => (candidate.pendingUrl || candidate.url || '').startsWith(studioUrl));
+    if (tab?.id) {
+      studioTabId = tab.id;
+      return tab;
+    }
+  } catch {
+    // URL-scoped tab queries can be unavailable in restricted enterprise setups.
+  }
+  return null;
+}
+
+function shouldUpdateStudioSourceUrl(currentUrl, sourceTabId) {
+  if (!sourceTabId) return false;
+  try {
+    const parsed = new URL(currentUrl);
+    return Number(parsed.searchParams.get('sourceTabId')) !== Number(sourceTabId);
+  } catch {
+    return true;
+  }
 }
 
 async function getActiveCaptureCandidateTabId() {

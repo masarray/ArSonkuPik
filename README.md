@@ -64,7 +64,7 @@ npm run package:webstore
 Upload the generated file from:
 
 ```text
-release/arsonkupik-extension-v0_3_38-webstore-upload.zip
+release/arsonkupik-extension-v0_3_40-webstore-upload.zip
 ```
 
 The generated ZIP intentionally contains only the runtime files Chrome needs:
@@ -97,6 +97,6 @@ See [`docs/PRIVACY_POLICY.md`](docs/PRIVACY_POLICY.md).
 
 ## Current status
 
-Version: **0.3.38**
+Version: **0.3.40**
 
 This repository is prepared as a professional public-source release and Chrome Web Store candidate. Run the manual test plan before public submission, especially the long-run audio stability test.

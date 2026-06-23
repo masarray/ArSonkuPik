@@ -93,6 +93,11 @@ h1 {
   box-shadow: 0 0 0 4px rgba(98, 230, 216, .15), 0 0 20px rgba(98, 230, 216, .45);
 }
 
+.status-dot.warm {
+  background: var(--warning);
+  box-shadow: 0 0 0 4px rgba(245, 185, 91, .13), 0 0 18px rgba(245, 185, 91, .36);
+}
+
 .source-card,
 .panel,
 .compact-controls {

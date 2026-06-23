@@ -32,12 +32,17 @@ async function init() {
 }
 
 function bindEvents() {
-  ui.startStopButton.addEventListener('click', async () => {
+  ui.startStopButton.addEventListener('click', async (event) => {
     if (busy) return;
     busy = true;
-    setHint(state?.active ? 'Stopping audio engine…' : 'Starting capture for this tab…');
+    const fullStop = Boolean(event.shiftKey || event.altKey);
+    setHint(state?.active
+      ? (fullStop ? 'Releasing tab capture…' : 'Switching enhance power without reopening YouTube audio…')
+      : 'Starting capture for this tab…');
     try {
-      const response = state?.active ? await stopEnhance() : await startEnhanceWithAutoBypassOff();
+      const response = state?.active
+        ? (fullStop ? await stopEnhance() : await toggleEnhanceBypass())
+        : await startEnhanceWithAutoBypassOff();
       if (!response?.ok) throw new Error(response?.error || 'Command failed');
       await refreshState();
     } catch (error) {
@@ -114,6 +119,15 @@ async function startEnhanceWithAutoBypassOff() {
   return startEnhance();
 }
 
+async function toggleEnhanceBypass() {
+  const bypass = !Boolean(state?.output?.bypass);
+  state = { ...state, output: { ...state.output, bypass } };
+  setHint(bypass
+    ? 'Enhance off. Capture kept warm so YouTube does not renegotiate playback.'
+    : 'Enhance on. Reusing the same capture stream.');
+  return updateEngineState({ output: { bypass } });
+}
+
 function getPresetDisplayName(preset) {
   if (!preset) return MASARI_PRESET_LABEL;
   if (preset.id === 'default') return MASARI_PRESET_LABEL;
@@ -121,11 +135,17 @@ function getPresetDisplayName(preset) {
 }
 
 function render() {
-  ui.statusDot.classList.toggle('active', Boolean(state.active));
+  const isActive = Boolean(state.active);
+  const isBypassed = Boolean(state.output?.bypass);
+  ui.statusDot.classList.toggle('active', isActive && !isBypassed);
+  ui.statusDot.classList.toggle('warm', isActive && isBypassed);
   ui.sourceTitle.textContent = state.sourceTitle || 'No active capture';
   ui.startStopButton.hidden = false;
-  ui.startStopButton.textContent = state.active ? 'Stop Enhance' : 'Start Enhance';
-  ui.startStopButton.classList.toggle('danger', Boolean(state.active));
+  ui.startStopButton.textContent = !isActive ? 'Start Enhance' : (isBypassed ? 'Enhance On' : 'Enhance Off');
+  ui.startStopButton.title = isActive
+    ? 'Click toggles mastering bypass without reopening capture. Shift-click releases tab capture fully.'
+    : 'Start local tab capture and audio enhancement.';
+  ui.startStopButton.classList.toggle('danger', isActive && !isBypassed);
   const outputGain = Number(state.output?.outputGain ?? -1.6);
   ui.outputGain.value = outputGain;
   ui.outputGainValue.textContent = `${outputGain.toFixed(1)} dB`;
@@ -133,7 +153,9 @@ function render() {
   renderPresets();
   autoPopulateOutputDevices(state.output?.outputDeviceId).catch((error) => setAudioOutputHint(error.message));
   renderOutputRouteHint();
-  setHint(state.active ? 'Enhancing this tab locally.' : 'Audio is processed locally. No recording, no upload.');
+  setHint(isActive
+    ? (isBypassed ? 'Enhance is off but capture is kept warm to avoid YouTube buffering.' : 'Enhancing this tab locally.')
+    : 'Audio is processed locally. No recording, no upload.');
 }
 
 function renderPresets() {

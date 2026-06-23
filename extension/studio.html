@@ -170,13 +170,13 @@
           <div class="module-title">
             <span class="lbl"><svg class="head-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg> Color &middot; Harmonics</span>
           </div>
-          <div class="module-head-tools compact">
-            <label class="module-preset">
+          <div class="module-head-tools compact color-head-tools">
+            <label class="module-preset has-mode-badge">
+              <span class="module-badge" id="colorModeBadge">Clean</span>
               <span>Preset</span>
               <select id="colorPresetSelect" class="ak-select" data-plugin-preset="color" aria-label="Color preset"></select>
             </label>
             <button class="fx-switch" id="bypassColor" type="button" aria-pressed="false" title="Bypass color"><svg class="power-ico" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg></button>
-            <span class="module-badge" id="colorModeBadge">Clean</span>
           </div>
         </div>
         <canvas id="colorCanvas" width="520" height="184" aria-label="Harmonic saturation visualizer"></canvas>

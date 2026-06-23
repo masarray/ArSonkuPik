@@ -54,6 +54,7 @@ export const DEFAULT_WIDTH = {
   lowMidWidth: 104,
   midWidth: 112,
   highWidth: 144,
+  sourceProtect: 88,
   monoBass: true,
   monoBassFreq: 150,
   sideTone: 2.2
@@ -72,7 +73,7 @@ export const DEFAULT_OUTPUT = {
   outputRouteStatus: 'default'
 };
 
-export const DEFAULT_MASTER_REVISION = 'ozone-style-width-fluid-v10';
+export const DEFAULT_MASTER_REVISION = 'source-aware-width-v11';
 
 export const PRIMARY_MASTER_PRESET_IDS = [
   'default',
@@ -401,6 +402,7 @@ export function normalizeWidth(width = {}) {
     lowMidWidth: clampNumber(width.lowMidWidth ?? derivedLowMid, 0, 200),
     midWidth: clampNumber(width.midWidth ?? derivedMid, 0, 200),
     highWidth: clampNumber(width.highWidth ?? derivedHigh, 0, 200),
+    sourceProtect: clampNumber(width.sourceProtect ?? DEFAULT_WIDTH.sourceProtect, 0, 100),
     monoBass: width.monoBass !== false,
     monoBassFreq: clampNumber(width.monoBassFreq ?? DEFAULT_WIDTH.monoBassFreq, 60, 250),
     sideTone: clampNumber(width.sideTone ?? DEFAULT_WIDTH.sideTone, -12, 18)

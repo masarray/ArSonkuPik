@@ -182,6 +182,8 @@ const PEAK_ATTACK_ALPHA = 0.34;
 const PEAK_RELEASE_ALPHA = 0.10;
 
 async function init() {
+  sendMessage({ target: 'background', type: 'REGISTER_STUDIO' }).catch(() => {});
+  document.addEventListener('visibilitychange', onStudioVisibilityChange);
   buildSkeleton();
   bindUiEvents();
   await refreshState();
@@ -202,9 +204,12 @@ function bindUiEvents() {
       if (busy) return;
       busy = true;
       ui.startStopButton.disabled = true;
-      ui.startStopButton.textContent = state?.active ? 'Stopping…' : 'Starting…';
+      const fullStop = Boolean(event.shiftKey || event.altKey);
+      ui.startStopButton.textContent = state?.active ? (fullStop ? 'Stopping…' : 'Bypassing…') : 'Starting…';
       try {
-        const response = state?.active ? await stopEnhance() : await startEnhanceWithAutoBypassOff();
+        const response = state?.active
+          ? (fullStop ? await stopEnhance() : await toggleEnhanceBypass())
+          : await startEnhanceWithAutoBypassOff();
         if (!response?.ok) throw new Error(response?.error || 'Command failed');
         await refreshState();
       } catch (error) {
@@ -378,6 +383,24 @@ async function startEnhanceWithAutoBypassOff() {
     await updateEngineState({ output: { bypass: false } });
   }
   return startEnhance(sourceTabIdFromUrl);
+}
+
+async function toggleEnhanceBypass() {
+  const bypass = !Boolean(state?.output?.bypass);
+  bypassAll = bypass;
+  state.output = { ...state.output, bypass };
+  syncMasterBypassButton(bypass);
+  document.querySelector('.app')?.classList.toggle('master-bypassed', bypass);
+  updateRackState();
+  return updateEngineState({ output: { bypass } });
+}
+
+function onStudioVisibilityChange() {
+  if (!document.hidden) {
+    lastSpectrumRenderMs = 0;
+    lastSpectrumTickMs = 0;
+    refreshState(false).catch(console.error);
+  }
 }
 
 function getPresetDisplayName(preset) {
@@ -1054,6 +1077,10 @@ function drawColorViz() {
 function startColorLoop() {
   if (_colorLoop) return;
   const tick = (ts) => {
+    if (document.hidden) {
+      _colorLoop = requestAnimationFrame(tick);
+      return;
+    }
     if (!(_lastColorFrame) || ts - _lastColorFrame >= VISUAL_FRAME_MS) {
       colorVizPhase = ts / 1000;
       if (state?.color?.enabled) drawColorViz();
@@ -1074,7 +1101,8 @@ function renderWidthControls() {
     ['lowMidWidth', 'Low-Mid', 0, 200, 1, '%'],
     ['midWidth', 'Mid', 0, 200, 1, '%'],
     ['highWidth', 'High', 0, 200, 1, '%'],
-    ['monoBassFreq', 'Mono Bass', 60, 250, 1, 'Hz'],
+    ['sourceProtect', 'Source Guard', 0, 100, 1, '%'],
+    ['monoBassFreq', 'Created Bass Guard', 60, 250, 1, 'Hz'],
     ['sideTone', 'Side Air', -12, 18, 0.5, 'dB']
   ];
   for (const [field, label, min, max, step, unit] of controls) {
@@ -1663,6 +1691,10 @@ let _lastCompFrame = 0;
 function startCompLoop() {
   if (_compLoop) return;
   const tick = (ts) => {
+    if (document.hidden) {
+      _compLoop = requestAnimationFrame(tick);
+      return;
+    }
     if (!(_lastCompFrame) || ts - _lastCompFrame >= VISUAL_FRAME_MS) {
       const diff = compState.target - compState.live;
       if (Math.abs(diff) > 0.05) {
@@ -2075,6 +2107,7 @@ function stepSlope(b, direction) {
 function startMeterPolling() {
   clearInterval(pollingTimer);
   pollingTimer = setInterval(async () => {
+    if (document.hidden) return;
     const response = await sendMessage({ target: 'offscreen', type: 'GET_ANALYSIS_FRAME' }).catch(() => null);
     if (!response?.ok) return;
     lastMeterPayload = response.frame || null;
@@ -2282,6 +2315,10 @@ for (let i = 0; i < SPEC_N; i += 1) {
 }
 
 function tickSpectrum(ts) {
+  if (document.hidden) {
+    requestAnimationFrame(tickSpectrum);
+    return;
+  }
   if (lastSpectrumRenderMs && ts - lastSpectrumRenderMs < SPECTRUM_FRAME_MS) {
     requestAnimationFrame(tickSpectrum);
     return;

@@ -129,6 +129,7 @@ class AudioEnhancerEngine {
     this.rightAnalyser = null;
     this.meterSink = null;
     this.stereoBands = [];
+    this.widthAdaptiveFactor = 0.35;
     this.outputRouteDestination = null;
     this.outputRouteMode = 'media-element';
     this.outputElement = null;
@@ -153,6 +154,8 @@ class AudioEnhancerEngine {
         const { presets, ...initialBase } = initialState;
         this.state = this.prepareState({ ...createDefaultState(), ...initialBase, active: false, tabId: null });
       }
+
+      this.widthAdaptiveFactor = 0.35;
 
       const AudioContextCtor = globalThis.AudioContext || globalThis.webkitAudioContext;
       if (!AudioContextCtor) throw new Error('Web Audio API is not available in this browser.');
@@ -271,6 +274,7 @@ class AudioEnhancerEngine {
     this.rightAnalyser = null;
     this.meterSink = null;
     this.stereoBands = [];
+    this.widthAdaptiveFactor = 0.35;
     this.outputRouteDestination = null;
     this.outputRouteMode = 'media-element';
     this.outputElement = null;
@@ -519,21 +523,21 @@ class AudioEnhancerEngine {
       input: makeGain(),
       splitter: this.context.createChannelSplitter(2),
       merger: this.context.createChannelMerger(2),
-      lMidL: makeGain(0.5),
-      rMidL: makeGain(0.5),
-      lMidR: makeGain(0.5),
-      rMidR: makeGain(0.5),
-      lSide: makeGain(0.5),
-      rSide: makeGain(-0.5),
-      sideBus: makeGain(),
-      sidePreHighpass: makeFilter('highpass', 60, 0.707),
+      lDry: makeGain(1),
+      rDry: makeGain(1),
+      lMid: makeGain(0.5),
+      rMid: makeGain(0.5),
+      midBus: makeGain(),
+      generatedPreHighpass: makeFilter('highpass', 180, 0.707),
+      generatedPhaseA: makeFilter('allpass', 860, 0.58),
+      generatedPhaseB: makeFilter('allpass', 5200, 0.70),
       lowBand: makeBand('low', null, 0, 'lowpass', 150),
       lowMidBand: makeBand('lowMid', 'highpass', 150, 'lowpass', 650),
       midBand: makeBand('mid', 'highpass', 650, 'lowpass', 4200),
       highBand: makeBand('high', 'highpass', 4200, null, 0),
       sideAirTone: makeFilter('highshelf', 9200, 0.62),
-      sideToL: makeGain(1),
-      sideToR: makeGain(-1)
+      sideToL: makeGain(0.35),
+      sideToR: makeGain(-0.35)
     };
   }
 
@@ -567,8 +571,8 @@ class AudioEnhancerEngine {
     const bands = [w.lowBand, w.lowMidBand, w.midBand, w.highBand].flatMap((band) => band?.nodes || []);
     return [
       w.input, w.splitter, w.merger,
-      w.lMidL, w.rMidL, w.lMidR, w.rMidR,
-      w.lSide, w.rSide, w.sideBus, w.sidePreHighpass,
+      w.lDry, w.rDry, w.lMid, w.rMid, w.midBus,
+      w.generatedPreHighpass, w.generatedPhaseA, w.generatedPhaseB,
       ...bands, w.sideAirTone, w.sideToL, w.sideToR
     ].filter(Boolean);
   }
@@ -917,22 +921,21 @@ class AudioEnhancerEngine {
     const w = this.widthNodes;
     cursor.connect(w.input).connect(w.splitter);
 
-    // Mid is reconstructed at unity. The widener only shapes Side by band,
-    // which is the safer Ozone-style mental model: bass solid, vocal/mid
-    // coherent, treble particles spacious. No delay/Haas widening is used.
-    w.splitter.connect(w.lMidL, 0); w.lMidL.connect(w.merger, 0, 0);
-    w.splitter.connect(w.rMidL, 1); w.rMidL.connect(w.merger, 0, 0);
-    w.splitter.connect(w.lMidR, 0); w.lMidR.connect(w.merger, 0, 1);
-    w.splitter.connect(w.rMidR, 1); w.rMidR.connect(w.merger, 0, 1);
+    // Source-aware width v11: preserve the incoming L/R music as the dry path.
+    // The module only adds a small, mono-cancelling side layer generated from a
+    // filtered mid copy. Existing stereo drums, pianos and ambience are never
+    // narrowed or rebuilt into mono by this block.
+    w.splitter.connect(w.lDry, 0); w.lDry.connect(w.merger, 0, 0);
+    w.splitter.connect(w.rDry, 1); w.rDry.connect(w.merger, 0, 1);
 
-    w.splitter.connect(w.lSide, 0); w.lSide.connect(w.sideBus);
-    w.splitter.connect(w.rSide, 1); w.rSide.connect(w.sideBus);
-    const sideRoot = w.sideBus.connect(w.sidePreHighpass);
+    w.splitter.connect(w.lMid, 0); w.lMid.connect(w.midBus);
+    w.splitter.connect(w.rMid, 1); w.rMid.connect(w.midBus);
+    const sideRoot = w.midBus.connect(w.generatedPreHighpass).connect(w.generatedPhaseA).connect(w.generatedPhaseB);
 
     const reconnectWidthBand = (band) => {
       // getAllNodes().disconnect() resets every AudioNode on each graph rebuild.
-      // Rebuild the internal crossover chain here so multiband Side never goes
-      // silent after start/bypass/preset/output-route changes.
+      // Rebuild the internal crossover chain here so multiband generated Side
+      // never goes silent after start/bypass/preset/output-route changes.
       const nodes = band.nodeMap || {};
       let tail = band.entry;
       if (nodes.low) {
@@ -1110,46 +1113,51 @@ class AudioEnhancerEngine {
     const w = this.widthNodes;
     const tone = Number(width.sideTone || 0);
     const tonePositive = Math.max(0, tone);
-    const master = clamp(width.width / 100, 0, 2);
+    const masterExpand = clamp((width.width - 100) / 100, 0, 1);
 
-    for (const node of [w.lMidL, w.rMidL, w.lMidR, w.rMidR]) node.gain.setTargetAtTime(0.5, now, ramp);
-    w.lSide.gain.setTargetAtTime(0.5, now, ramp);
-    w.rSide.gain.setTargetAtTime(-0.5, now, ramp);
+    w.lDry.gain.setTargetAtTime(1, now, ramp);
+    w.rDry.gain.setTargetAtTime(1, now, ramp);
+    w.lMid.gain.setTargetAtTime(0.5, now, ramp);
+    w.rMid.gain.setTargetAtTime(0.5, now, ramp);
 
-    w.sidePreHighpass.frequency.setTargetAtTime(width.monoBass ? width.monoBassFreq : 42, now, ramp);
+    // The mono-bass control now protects only the generated side layer. The
+    // incoming stereo low end is left untouched, so stereo instruments are not
+    // folded toward mono by the Width module.
+    const generatedLowCut = width.monoBass ? Math.max(165, width.monoBassFreq) : 115;
+    w.generatedPreHighpass.frequency.setTargetAtTime(generatedLowCut, now, ramp);
+    w.generatedPhaseA.frequency.setTargetAtTime(760 + tonePositive * 8, now, ramp);
+    w.generatedPhaseB.frequency.setTargetAtTime(5000 + tonePositive * 42, now, ramp);
 
-    const bandGain = (percent, weight = 1) => {
-      const ratio = clamp(percent / 100, 0, 2);
-      const delta = (ratio - 1) * weight;
-      const linked = (master - 1) * 0.18;
-      return clamp(1 + delta + linked, 0, 2.15);
+    const additiveGain = (percent, weight, linked, maxValue) => {
+      const bandExpand = clamp((percent - 100) / 100, 0, 1);
+      return clamp((bandExpand * weight) + (masterExpand * linked), 0, maxValue);
     };
-    const lowGain = width.monoBass ? Math.min(1, bandGain(width.lowWidth, 0.22)) : bandGain(width.lowWidth, 0.38);
-    const lowMidGain = bandGain(width.lowMidWidth, 0.48);
-    const midGain = bandGain(width.midWidth, 0.68);
-    const highGain = bandGain(width.highWidth, 0.92);
+    const lowGain = width.monoBass ? 0 : additiveGain(width.lowWidth, 0.018, 0.006, 0.018);
+    const lowMidGain = additiveGain(width.lowMidWidth, 0.044, 0.014, 0.046);
+    const midGain = additiveGain(width.midWidth, 0.092, 0.030, 0.096);
+    const highGain = additiveGain(width.highWidth, 0.170, 0.066, 0.185);
 
     w.lowBand.gain.gain.setTargetAtTime(lowGain, now, ramp);
     w.lowMidBand.gain.gain.setTargetAtTime(lowMidGain, now, ramp);
     w.midBand.gain.gain.setTargetAtTime(midGain, now, ramp);
     w.highBand.gain.gain.setTargetAtTime(highGain, now, ramp);
 
-    w.lowBand.guard.threshold.setTargetAtTime(-10, now, ramp);
-    w.lowMidBand.guard.threshold.setTargetAtTime(-15, now, ramp);
-    w.midBand.guard.threshold.setTargetAtTime(-17 - Math.max(0, midGain - 1) * 5, now, ramp);
-    w.highBand.guard.threshold.setTargetAtTime(-19 - Math.max(0, highGain - 1) * 6, now, ramp);
-    w.midBand.guard.ratio.setTargetAtTime(1.45 + Math.max(0, midGain - 1) * 0.7, now, ramp);
-    w.highBand.guard.ratio.setTargetAtTime(1.7 + Math.max(0, highGain - 1) * 1.0, now, ramp);
+    w.lowBand.guard.threshold.setTargetAtTime(-8, now, ramp);
+    w.lowMidBand.guard.threshold.setTargetAtTime(-14, now, ramp);
+    w.midBand.guard.threshold.setTargetAtTime(-18 - midGain * 46, now, ramp);
+    w.highBand.guard.threshold.setTargetAtTime(-20 - highGain * 50, now, ramp);
+    w.midBand.guard.ratio.setTargetAtTime(1.35 + midGain * 4.5, now, ramp);
+    w.highBand.guard.ratio.setTargetAtTime(1.55 + highGain * 5.4, now, ramp);
 
     w.lowBand.nodeMap.high.frequency.setTargetAtTime(155, now, ramp);
-    w.lowMidBand.nodeMap.low.frequency.setTargetAtTime(155, now, ramp);
-    w.lowMidBand.nodeMap.high.frequency.setTargetAtTime(680, now, ramp);
-    w.midBand.nodeMap.low.frequency.setTargetAtTime(680, now, ramp);
-    w.midBand.nodeMap.high.frequency.setTargetAtTime(4200 + tonePositive * 35, now, ramp);
-    w.highBand.nodeMap.low.frequency.setTargetAtTime(4300 + tonePositive * 50, now, ramp);
+    w.lowMidBand.nodeMap.low.frequency.setTargetAtTime(165, now, ramp);
+    w.lowMidBand.nodeMap.high.frequency.setTargetAtTime(720, now, ramp);
+    w.midBand.nodeMap.low.frequency.setTargetAtTime(720, now, ramp);
+    w.midBand.nodeMap.high.frequency.setTargetAtTime(4300 + tonePositive * 30, now, ramp);
+    w.highBand.nodeMap.low.frequency.setTargetAtTime(4400 + tonePositive * 45, now, ramp);
 
-    w.sideAirTone.frequency.setTargetAtTime(9400 + tonePositive * 90, now, ramp);
-    w.sideAirTone.gain.setTargetAtTime(clamp(tone * 0.18, -2.2, 3.6), now, ramp);
+    w.sideAirTone.frequency.setTargetAtTime(9800 + tonePositive * 120, now, ramp);
+    w.sideAirTone.gain.setTargetAtTime(clamp(tone * 0.14, -1.8, 2.8), now, ramp);
   }
 
 
@@ -1268,6 +1276,36 @@ class AudioEnhancerEngine {
     return this.lastRtaFrame;
   }
 
+  updateAdaptiveWidth(inputStereo) {
+    if (!this.context || !this.widthNodes?.sideToL || !this.widthNodes?.sideToR) return;
+    const width = normalizeWidth(this.state.width || {});
+    const now = this.context.currentTime;
+    const ramp = 0.32;
+
+    let target = 0;
+    if (width.enabled && width.width > 100) {
+      const correlation = clamp(Number(inputStereo?.correlation ?? 1), -1, 1);
+      const sourceWidth = clamp(Number(inputStereo?.width ?? 0), 0, 220);
+      const energy = Number(inputStereo?.energy ?? 0);
+      const protect = clamp((width.sourceProtect ?? 88) / 100, 0, 1);
+      const macro = clamp((width.width - 100) / 100, 0, 1);
+
+      if (Number.isFinite(energy) && energy >= 0.0025) {
+        const monoLike = clamp((correlation - 0.68) / 0.28, 0, 1) * clamp((78 - sourceWidth) / 78, 0, 1);
+        const safeStereo = clamp((correlation - 0.34) / 0.44, 0, 1) * clamp((112 - sourceWidth) / 112, 0, 1);
+        const tooWide = Math.max(clamp((0.26 - correlation) / 0.34, 0, 1), clamp((sourceWidth - 104) / 72, 0, 1));
+        target = clamp((0.08 + monoLike * 0.92 + safeStereo * 0.14) * (0.45 + macro * 0.55), 0, 1);
+        target *= (1 - tooWide * protect);
+        if (correlation < 0.10 || sourceWidth > 162) target = 0;
+      }
+    }
+
+    this.widthAdaptiveFactor += (target - this.widthAdaptiveFactor) * 0.18;
+    if (Math.abs(this.widthAdaptiveFactor) < 0.001) this.widthAdaptiveFactor = 0;
+    this.widthNodes.sideToL.gain.setTargetAtTime(this.widthAdaptiveFactor, now, ramp);
+    this.widthNodes.sideToR.gain.setTargetAtTime(-this.widthAdaptiveFactor, now, ramp);
+  }
+
   computeMeters() {
     if (!this.inputAnalyser || !this.outputAnalyser || !this.timeBufferIn || !this.timeBufferOut) return this.state.meters;
     this.inputAnalyser.getFloatTimeDomainData(this.timeBufferIn);
@@ -1285,6 +1323,10 @@ class AudioEnhancerEngine {
     const outputPeak = getPeak(this.timeBufferOut);
     const inputPeakLeft = this.timeBufferInputLeft ? getPeak(this.timeBufferInputLeft) : inputPeak;
     const inputPeakRight = this.timeBufferInputRight ? getPeak(this.timeBufferInputRight) : inputPeak;
+    const inputStereo = this.timeBufferInputLeft && this.timeBufferInputRight
+      ? analyseStereoBand(this.timeBufferInputLeft, this.timeBufferInputRight)
+      : { width: 0, correlation: 1, energy: 0, sideRatio: 0 };
+    this.updateAdaptiveWidth(inputStereo);
     const outputPeakLeft = this.timeBufferLeft ? getPeak(this.timeBufferLeft) : outputPeak;
     const outputPeakRight = this.timeBufferRight ? getPeak(this.timeBufferRight) : outputPeak;
     const compressorGainReduction = this.state.compressor.enabled ? Math.max(0, Math.abs(this.compressor?.reduction || 0)) : 0;
@@ -1309,6 +1351,9 @@ class AudioEnhancerEngine {
       compressorGainReductionRight,
       limiterGainReduction,
       correlation,
+      inputCorrelation: inputStereo.correlation,
+      inputStereoWidth: inputStereo.width,
+      widthAdaptiveFactor: this.widthAdaptiveFactor,
       stereoBands,
       clipping,
       smartHeadroomDb: this.smartHeadroomDb,
@@ -1380,11 +1425,11 @@ function analyseStereoBand(left, right) {
     totalPower += l * l + r * r;
   }
   const energy = Math.sqrt(totalPower / Math.max(1, n * 2));
-  if (!Number.isFinite(energy) || energy < 0.0025) return { width: 0, correlation: 1 };
+  if (!Number.isFinite(energy) || energy < 0.0025) return { width: 0, correlation: 1, energy, sideRatio: 0 };
   const correlation = computeCorrelation(left, right);
   const ratio = Math.sqrt(sidePower / Math.max(midPower, 1e-9));
-  const width = clamp(ratio * 140, 0, 200);
-  return { width, correlation };
+  const width = clamp(ratio * 140, 0, 220);
+  return { width, correlation, energy, sideRatio: ratio };
 }
 
 function makeSaturationCurve(driveDb = 3, mode = 'clean') {

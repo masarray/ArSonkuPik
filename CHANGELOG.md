@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.40 - Warm bypass and single Studio tab
+
+- Moved the Color mode badge beside the module preset label so the panel header stays compact and color-matched.
+- Changed popup power toggling while active to use warm master bypass instead of full tab-capture stop/start, reducing YouTube playback renegotiation and buffering.
+- Added Shift/Alt-click full stop for users who need to release tab capture completely.
+- Reused an existing Studio tab instead of opening duplicates, and paused Studio meter/RTA polling while the Studio tab is hidden.
+
+## 0.3.39
+- Reworked Stereo Width into a source-aware, parallel side-enhancement engine.
+- Preserves the incoming left/right stereo image instead of rebuilding or narrowing existing stereo music.
+- Adds adaptive Source Guard so already-wide or low-correlation material receives little/no extra width while mono-like sources can still feel wider.
+- Applies mono-bass protection only to the generated side layer, not to the original source.
+
 ## 0.3.38
 
 - restored the compressor vertical linked L/R gain-reduction meter beside the compressor transfer canvas
