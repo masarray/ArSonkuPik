@@ -133,6 +133,8 @@ class AudioEnhancerEngine {
     this.meterSink = null;
     this.stereoBands = [];
     this.widthAdaptiveFactor = 0.35;
+    this.colorStereoAdaptive = 0.85;
+    this.sideMidBase = { presence: 0, tone: 0, driveDb: 0, wet: 0 };
     this.outputRouteDestination = null;
     this.outputRouteMode = 'media-element';
     this.outputElement = null;
@@ -159,6 +161,7 @@ class AudioEnhancerEngine {
       }
 
       this.widthAdaptiveFactor = 0.35;
+    this.colorStereoAdaptive = 0.85;
 
       const AudioContextCtor = globalThis.AudioContext || globalThis.webkitAudioContext;
       if (!AudioContextCtor) throw new Error('Web Audio API is not available in this browser.');
@@ -284,6 +287,7 @@ class AudioEnhancerEngine {
     this.meterSink = null;
     this.stereoBands = [];
     this.widthAdaptiveFactor = 0.35;
+    this.colorStereoAdaptive = 0.85;
     this.outputRouteDestination = null;
     this.outputRouteMode = 'media-element';
     this.outputElement = null;
@@ -1154,26 +1158,30 @@ class AudioEnhancerEngine {
     c.sideWet.gain.setTargetAtTime(clamp(sideWet, 0, voiceSafe ? 0.015 : 0.095), now, ramp);
     c.sideShaper.curve = makeSideAirExciterCurve(driveDb * (voiceSafe ? 0.035 : 0.095) + harmonicAmount * 0.42 + Math.max(0, airAmount) * 0.24, color.mode);
 
-    // Real-side MID harmonic exciter (~0.7-4.5 kHz). This lifts the genuine
-    // stereo "bersahutan" detail so the mid feels alive and energetic, WITHOUT
-    // narrowing the original image (it only adds to the true Side, which cancels
-    // in mono). Scales with the new Stereo Mid control and the harmonic amount.
+    // Real-side MID harmonic exciter (~0.7-4.5 kHz). Lifts the genuine stereo
+    // "tickle" without narrowing the original image (real Side, cancels in mono).
+    // The amounts below are the BASE target; the live, context-aware factor in
+    // updateAdaptiveColorStereo() scales them by how much real stereo detail the
+    // source actually has, so mono material is left alone and rich stereo gets
+    // pushed harder. Frequencies + curve are set here, gains via applySideMidGains.
     const stereoMidAmt = clamp01((Number(color.stereoMid) || 0) / 100);
-    const midSideDriveDb = (voiceSafe ? 0.8 : 3.0) * stereoMidAmt + harmonicAmount * 1.4 * stereoMidAmt;
+    const midSideDriveDb = (voiceSafe ? 1.0 : 3.4) * stereoMidAmt + harmonicAmount * 1.6 * stereoMidAmt;
     c.sideMidHighpass.frequency.setTargetAtTime(220, now, ramp);
-    c.sideMidLowpass.frequency.setTargetAtTime(4600 + harmonicAmount * 500, now, ramp);
-    c.sideMidPresence.frequency.setTargetAtTime(2500 + harmonicAmount * 320, now, ramp);
-    c.sideMidPresence.gain.setTargetAtTime(stereoMidAmt * (voiceSafe ? 1.2 : 3.1), now, ramp);
-    c.sideMidTone.frequency.setTargetAtTime(3800, now, ramp);
-    c.sideMidTone.gain.setTargetAtTime(stereoMidAmt * (voiceSafe ? 0.6 : 1.7), now, ramp);
-    c.sideMidDrive.gain.setTargetAtTime(dbToGain(midSideDriveDb), now, ramp);
-    c.sideMidShaper.curve = makePresenceExciterCurve(2.0 + midSideDriveDb, color.mode);
-    const sideMidWet = clamp(stereoMidAmt * (voiceSafe ? 0.06 : 0.48) * (0.6 + 0.4 * mix), 0, 0.6);
-    c.sideMidWet.gain.setTargetAtTime(sideMidWet, now, ramp);
+    c.sideMidLowpass.frequency.setTargetAtTime(4700 + harmonicAmount * 600, now, ramp);
+    c.sideMidPresence.frequency.setTargetAtTime(2200 + harmonicAmount * 320, now, ramp);
+    c.sideMidTone.frequency.setTargetAtTime(3500, now, ramp);
+    c.sideMidShaper.curve = makePresenceExciterCurve(2.2 + midSideDriveDb, color.mode);
+    this.sideMidBase = {
+      presence: stereoMidAmt * (voiceSafe ? 1.4 : 3.8),
+      tone: stereoMidAmt * (voiceSafe ? 0.7 : 2.0),
+      driveDb: midSideDriveDb,
+      wet: clamp(stereoMidAmt * (voiceSafe ? 0.08 : 0.58) * (0.6 + 0.4 * mix), 0, 0.7)
+    };
+    this.applySideMidGains(now, ramp);
 
     // Loose analog-style compensation: keep Color audible, but stop high drive from
     // just becoming louder/crunchier. More body/warmth is allowed to remain felt.
-    const colorComp = 1 / (1 + mix * (driveDb / 12.2) * 0.18 + harmonicAmount * mix * 0.09 + sideWet * 0.08 + sideMidWet * 0.06 + Math.max(0, airAmount) * mix * 0.030);
+    const colorComp = 1 / (1 + mix * (driveDb / 12.2) * 0.18 + harmonicAmount * mix * 0.09 + sideWet * 0.08 + this.sideMidBase.wet * 0.06 + Math.max(0, airAmount) * mix * 0.030);
     c.output.gain.setTargetAtTime(clamp(colorComp, voiceSafe ? 0.94 : 0.84, 1.03), now, ramp);
 
     // Compatibility fields for older state snapshots and visualizer state.
@@ -1418,6 +1426,47 @@ class AudioEnhancerEngine {
     this.widthNodes.sideToR.gain.setTargetAtTime(-this.widthAdaptiveFactor, now, ramp);
   }
 
+  applySideMidGains(now, ramp) {
+    const c = this.colorNodes;
+    if (!c?.sideMidWet) return;
+    const f = clamp(this.colorStereoAdaptive, 0, 1.6);
+    const b = this.sideMidBase || { presence: 0, tone: 0, driveDb: 0, wet: 0 };
+    c.sideMidPresence.gain.setTargetAtTime(b.presence * f, now, ramp);
+    c.sideMidTone.gain.setTargetAtTime(b.tone * f, now, ramp);
+    c.sideMidDrive.gain.setTargetAtTime(dbToGain(b.driveDb * (0.6 + 0.4 * f)), now, ramp);
+    c.sideMidWet.gain.setTargetAtTime(clamp(b.wet * f, 0, 0.8), now, ramp);
+  }
+
+  updateAdaptiveColorStereo(inputStereo) {
+    if (!this.context || !this.colorNodes?.sideMidWet) return;
+    const now = this.context.currentTime;
+    const ramp = 0.16;
+    // Smart, source-aware mid-side tickle. Driven by the INPUT stereo character
+    // (open-loop -> cannot feedback-oscillate). Material that genuinely has mid
+    // stereo detail gets pushed harder; near-mono material is left gentle so we
+    // never fabricate phasey width; extreme/anti-phase content eases back. The
+    // exciter only ever touches the real Side, so mono stays bit-clean.
+    let target = 0.55;
+    const enabled = this.state.color?.enabled && (this.state.color?.mix || 0) > 0 && (this.state.color?.stereoMid || 0) > 0;
+    if (enabled) {
+      const corr = clamp(Number(inputStereo?.correlation ?? 1), -1, 1);
+      const sourceWidth = clamp(Number(inputStereo?.width ?? 0), 0, 220);
+      const energy = Number(inputStereo?.energy ?? 0);
+      if (Number.isFinite(energy) && energy >= 0.0015) {
+        const stereoRich = clamp((0.94 - corr) / 0.6, 0, 1);
+        const widthRich = clamp(sourceWidth / 90, 0, 1);
+        target = 0.55 + Math.max(stereoRich, widthRich * 0.8) * 0.85;
+        const extreme = clamp((0.10 - corr) / 0.4, 0, 1);
+        target *= (1 - extreme * 0.5);
+      }
+    } else {
+      target = 0;
+    }
+    this.colorStereoAdaptive += (target - this.colorStereoAdaptive) * 0.12;
+    if (this.colorStereoAdaptive < 0.0005) this.colorStereoAdaptive = 0;
+    this.applySideMidGains(now, ramp);
+  }
+
   computeMeters() {
     if (!this.inputAnalyser || !this.outputAnalyser || !this.timeBufferIn || !this.timeBufferOut) return this.state.meters;
     this.inputAnalyser.getFloatTimeDomainData(this.timeBufferIn);
@@ -1439,6 +1488,7 @@ class AudioEnhancerEngine {
       ? analyseStereoBand(this.timeBufferInputLeft, this.timeBufferInputRight)
       : { width: 0, correlation: 1, energy: 0, sideRatio: 0 };
     this.updateAdaptiveWidth(inputStereo);
+    this.updateAdaptiveColorStereo(inputStereo);
     const outputPeakLeft = this.timeBufferLeft ? getPeak(this.timeBufferLeft) : outputPeak;
     const outputPeakRight = this.timeBufferRight ? getPeak(this.timeBufferRight) : outputPeak;
     const compressorGainReduction = this.state.compressor.enabled ? Math.max(0, Math.abs(this.compressor?.reduction || 0)) : 0;

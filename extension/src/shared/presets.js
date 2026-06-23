@@ -44,7 +44,7 @@ export const DEFAULT_COLOR = {
   warmth: 11,
   air: 20,
   mix: 40,
-  stereoMid: 32,
+  stereoMid: 38,
   mode: 'modern'
 };
 
@@ -135,7 +135,7 @@ export const FACTORY_PRESETS = [
     compressor: { threshold: -25, ratio: 2.0, knee: 22, attack: 0.028, release: 0.16, makeupGain: 1.2, parallelMix: 90 },
     // Modern harmonic excitation: richness + air = the "sweet/dopamine" factor, kept parallel so it stays clean.
     // stereoMid drives the real-side mid exciter so the genuine L-R "bersahutan" mid detail stays alive and energetic.
-    color: { enabled: true, drive: 5.6, body: 20, warmth: 14, harmonics: 56, air: 28, mix: 44, stereoMid: 66, mode: 'modern' },
+    color: { enabled: true, drive: 5.6, body: 20, warmth: 14, harmonics: 56, air: 28, mix: 44, stereoMid: 76, mode: 'modern' },
     // Lively multiband image. monoBass keeps the low end solid & mono (no LF phase smear);
     // the synthetic side is added antisymmetrically so it cancels in the mono sum -> zero phase issue.
     width: { enabled: true, width: 134, lowWidth: 100, lowMidWidth: 108, midWidth: 120, highWidth: 160, sourceProtect: 90, monoBass: true, monoBassFreq: 150, sideTone: 3.0 },
