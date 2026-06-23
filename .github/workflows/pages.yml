@@ -2,9 +2,12 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "master"]
     paths:
       - "site/**"
+      - "privacy/**"
+      - "support/**"
+      - "index.html"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
