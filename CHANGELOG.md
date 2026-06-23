@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.35
+
+- refreshed product icon, favicon, and Chrome Web Store store icon to match the current neon blue-violet UX theme
+- updated landing page icon assets to keep brand consistency across the extension and GitHub Pages site
+
 ## 0.3.34 — Chrome Store Readiness
 
 - Added Chrome Web Store review notes and privacy documentation.

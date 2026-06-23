@@ -1,48 +1,27 @@
 # Contributing
 
-Thank you for helping improve ArSonKuPik.
+Thank you for improving ArSonKuPik.
 
-## Project boundaries
+## Development rules
 
-ArSonKuPik has one purpose: local browser tab audio enhancement. Contributions should support that purpose.
-
-Please do not add:
-
-- host permissions;
-- content scripts;
-- remote executable code;
-- analytics SDKs;
-- Chrome Web Store auto-submit logic;
-- CRX packaging or private-key based distribution.
-
-## Development
+1. Keep the extension single-purpose: local tab audio enhancement.
+2. Do not add remote executable code.
+3. Do not add host permissions unless there is a reviewed, user-visible need.
+4. Keep CSS ownership clean; do not append release override blocks.
+5. Run validation before opening a pull request:
 
 ```bash
 npm run validate
 npm run package:webstore
 ```
 
-Load `extension/` unpacked in Chrome for manual testing.
+## CSS ownership
 
-## Pull requests
+Studio CSS is split by responsibility:
 
-Before opening a PR:
+- `extension/src/studio/studio.shell.css`
+- `extension/src/studio/studio.eq.css`
+- `extension/src/studio/studio.modules.css`
+- `extension/src/studio/studio.responsive.css`
 
-1. run `npm run validate`;
-2. run `npm run package:webstore` if extension runtime files changed;
-3. update docs when behavior changes;
-4. include manual audio test notes for engine/UI changes.
-
-## Audio engine changes
-
-For DSP changes, describe:
-
-- affected modules;
-- expected tonal behavior;
-- CPU/performance impact;
-- phase/mono-safety considerations;
-- manual listening duration and content tested.
-
-## Public safety
-
-This is a public repository. Never commit secrets, private keys, `.pem` files, Web Store API tokens, personal media, or copyrighted test audio.
+Edit the owner file directly. Avoid stacking fixes at the bottom of CSS files.
