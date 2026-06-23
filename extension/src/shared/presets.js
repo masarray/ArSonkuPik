@@ -77,6 +77,7 @@ export const DEFAULT_MASTER_REVISION = 'source-aware-width-v11';
 
 export const PRIMARY_MASTER_PRESET_IDS = [
   'default',
+  'max-enhancer',
   'audiophile-pop',
   'pro-music',
   'open-air-field',
@@ -108,6 +109,34 @@ export const FACTORY_PRESETS = [
     color: DEFAULT_COLOR,
     width: DEFAULT_WIDTH,
     output: DEFAULT_OUTPUT
+  }),
+  p({
+    id: 'max-enhancer',
+    name: 'Max Enhancer',
+    description: 'Maximum musical enhancement: solid powerful low, crisp clear vocals, sparkling air, and lively stereo — exciting and dopamine-rich but never fatiguing, fully mono-safe.',
+    eq: [
+      // Tight sub clean to protect headroom for the louder, denser master.
+      { ...DEFAULT_EQ_BANDS[0], frequency: 28, slope: 24 },
+      // Solid, powerful low body (punch + warmth) without boom.
+      { ...DEFAULT_EQ_BANDS[1], frequency: 92, gain: 2.2, q: 0.7 },
+      // Scoop low-mid mud so vocals and mix read clearly.
+      { ...DEFAULT_EQ_BANDS[2], frequency: 300, gain: -2.0, q: 1.1 },
+      // ~3 kHz presence/excitement — vocal clarity and "buzz" that pulls focus.
+      { ...DEFAULT_EQ_BANDS[3], frequency: 3000, gain: 1.6, q: 0.9 },
+      // ~7 kHz definition for crisp ("renyah") detail, above the harsh 4-5 kHz core.
+      { ...DEFAULT_EQ_BANDS[4], frequency: 7000, gain: 1.35, q: 1.05 },
+      // High shelf air/sparkle for an open, shiny, expensive top end.
+      { ...DEFAULT_EQ_BANDS[5], frequency: 12200, gain: 2.4, q: 0.6 }
+    ],
+    // Gentle glue with strong parallel blend: dense and powerful, transients intact.
+    compressor: { threshold: -25, ratio: 2.0, knee: 22, attack: 0.022, release: 0.16, makeupGain: 1.2, parallelMix: 92 },
+    // Modern harmonic excitation: richness + air = the "sweet/dopamine" factor, kept parallel so it stays clean.
+    color: { enabled: true, drive: 5.6, body: 20, warmth: 14, harmonics: 56, air: 28, mix: 44, mode: 'modern' },
+    // Lively multiband image. monoBass keeps the low end solid & mono (no LF phase smear);
+    // the synthetic side is added antisymmetrically so it cancels in the mono sum -> zero phase issue.
+    width: { enabled: true, width: 134, lowWidth: 100, lowMidWidth: 108, midWidth: 120, highWidth: 160, sourceProtect: 90, monoBass: true, monoBassFreq: 150, sideTone: 3.0 },
+    // Loud and punchy with punch-protect on the limiter so it never pumps or fatigues.
+    output: { outputGain: -1.4, limiterDrive: 0.8, limiterCeiling: -1, punchProtect: true }
   }),
   p({
     id: 'audiophile-pop',
