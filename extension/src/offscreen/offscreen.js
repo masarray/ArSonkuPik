@@ -408,6 +408,19 @@ class AudioEnhancerEngine {
       sideToR: this.context.createGain(),
       sideMerger: this.context.createChannelMerger(2),
 
+      // Color v10 real-side MID harmonic exciter. Unlike the Width module (which
+      // synthesises side from the mono sum), this lifts the GENUINE L-R stereo
+      // detail in the ~0.7-4.5 kHz "tickle" band with harmonics + a presence EQ,
+      // then folds it back antisymmetrically (+Side/-Side) so it cancels perfectly
+      // in the mono sum -> more alive mid stereo with zero phase issue.
+      sideMidHighpass: this.context.createBiquadFilter(),
+      sideMidLowpass: this.context.createBiquadFilter(),
+      sideMidPresence: this.context.createBiquadFilter(),
+      sideMidDrive: this.context.createGain(),
+      sideMidShaper: this.context.createWaveShaper(),
+      sideMidTone: this.context.createBiquadFilter(),
+      sideMidWet: this.context.createGain(),
+
       // Compatibility nodes for older state snapshots and docs.
       drive: this.context.createGain(),
       body: this.context.createBiquadFilter(),
@@ -476,6 +489,23 @@ class AudioEnhancerEngine {
     c.sideToL.gain.value = 1;
     c.sideToR.gain.value = -1;
     c.sideShaper.oversample = 'none';
+
+    // Real-side mid exciter: keep low mono (HPF 220 Hz), focus the mid/mid-high
+    // "tickle" band, 2x oversampling so mid harmonics never alias into harshness.
+    c.sideMidHighpass.type = 'highpass';
+    c.sideMidHighpass.frequency.value = 220;
+    c.sideMidHighpass.Q.value = 0.707;
+    c.sideMidLowpass.type = 'lowpass';
+    c.sideMidLowpass.frequency.value = 4800;
+    c.sideMidLowpass.Q.value = 0.707;
+    c.sideMidPresence.type = 'peaking';
+    c.sideMidPresence.frequency.value = 2600;
+    c.sideMidPresence.Q.value = 0.9;
+    c.sideMidTone.type = 'peaking';
+    c.sideMidTone.frequency.value = 3800;
+    c.sideMidTone.Q.value = 1.0;
+    c.sideMidShaper.oversample = '2x';
+    c.sideMidWet.gain.value = 0;
 
     c.body.type = 'lowshelf';
     c.body.frequency.value = 115;
@@ -930,6 +960,20 @@ class AudioEnhancerEngine {
       .connect(c.sideWet);
     c.sideWet.connect(c.sideToL).connect(c.sideMerger, 0, 0);
     c.sideWet.connect(c.sideToR).connect(c.sideMerger, 0, 1);
+
+    // Real-side MID harmonic exciter, branched from the same true (L-R) bus and
+    // summed into the same antisymmetric fold (sideToL +1 / sideToR -1) -> stays
+    // mono-cancelling.
+    c.sideBus
+      .connect(c.sideMidHighpass)
+      .connect(c.sideMidLowpass)
+      .connect(c.sideMidPresence)
+      .connect(c.sideMidDrive)
+      .connect(c.sideMidShaper)
+      .connect(c.sideMidTone)
+      .connect(c.sideMidWet);
+    c.sideMidWet.connect(c.sideToL);
+    c.sideMidWet.connect(c.sideToR);
     c.sideMerger.connect(c.output);
 
     return c.output;
@@ -1110,9 +1154,26 @@ class AudioEnhancerEngine {
     c.sideWet.gain.setTargetAtTime(clamp(sideWet, 0, voiceSafe ? 0.015 : 0.095), now, ramp);
     c.sideShaper.curve = makeSideAirExciterCurve(driveDb * (voiceSafe ? 0.035 : 0.095) + harmonicAmount * 0.42 + Math.max(0, airAmount) * 0.24, color.mode);
 
+    // Real-side MID harmonic exciter (~0.7-4.5 kHz). This lifts the genuine
+    // stereo "bersahutan" detail so the mid feels alive and energetic, WITHOUT
+    // narrowing the original image (it only adds to the true Side, which cancels
+    // in mono). Scales with the new Stereo Mid control and the harmonic amount.
+    const stereoMidAmt = clamp01((Number(color.stereoMid) || 0) / 100);
+    const midSideDriveDb = (voiceSafe ? 0.8 : 3.0) * stereoMidAmt + harmonicAmount * 1.4 * stereoMidAmt;
+    c.sideMidHighpass.frequency.setTargetAtTime(220, now, ramp);
+    c.sideMidLowpass.frequency.setTargetAtTime(4600 + harmonicAmount * 500, now, ramp);
+    c.sideMidPresence.frequency.setTargetAtTime(2500 + harmonicAmount * 320, now, ramp);
+    c.sideMidPresence.gain.setTargetAtTime(stereoMidAmt * (voiceSafe ? 1.2 : 3.1), now, ramp);
+    c.sideMidTone.frequency.setTargetAtTime(3800, now, ramp);
+    c.sideMidTone.gain.setTargetAtTime(stereoMidAmt * (voiceSafe ? 0.6 : 1.7), now, ramp);
+    c.sideMidDrive.gain.setTargetAtTime(dbToGain(midSideDriveDb), now, ramp);
+    c.sideMidShaper.curve = makePresenceExciterCurve(2.0 + midSideDriveDb, color.mode);
+    const sideMidWet = clamp(stereoMidAmt * (voiceSafe ? 0.06 : 0.48) * (0.6 + 0.4 * mix), 0, 0.6);
+    c.sideMidWet.gain.setTargetAtTime(sideMidWet, now, ramp);
+
     // Loose analog-style compensation: keep Color audible, but stop high drive from
     // just becoming louder/crunchier. More body/warmth is allowed to remain felt.
-    const colorComp = 1 / (1 + mix * (driveDb / 12.2) * 0.18 + harmonicAmount * mix * 0.09 + sideWet * 0.08 + Math.max(0, airAmount) * mix * 0.030);
+    const colorComp = 1 / (1 + mix * (driveDb / 12.2) * 0.18 + harmonicAmount * mix * 0.09 + sideWet * 0.08 + sideMidWet * 0.06 + Math.max(0, airAmount) * mix * 0.030);
     c.output.gain.setTargetAtTime(clamp(colorComp, voiceSafe ? 0.94 : 0.84, 1.03), now, ramp);
 
     // Compatibility fields for older state snapshots and visualizer state.

@@ -44,6 +44,7 @@ export const DEFAULT_COLOR = {
   warmth: 11,
   air: 20,
   mix: 40,
+  stereoMid: 32,
   mode: 'modern'
 };
 
@@ -129,9 +130,12 @@ export const FACTORY_PRESETS = [
       { ...DEFAULT_EQ_BANDS[5], frequency: 12200, gain: 2.4, q: 0.6 }
     ],
     // Gentle glue with strong parallel blend: dense and powerful, transients intact.
-    compressor: { threshold: -25, ratio: 2.0, knee: 22, attack: 0.022, release: 0.16, makeupGain: 1.2, parallelMix: 92 },
+    // Slightly slower attack + a touch more parallel lets mid-range transients
+    // "tickle" through instead of being flattened.
+    compressor: { threshold: -25, ratio: 2.0, knee: 22, attack: 0.028, release: 0.16, makeupGain: 1.2, parallelMix: 90 },
     // Modern harmonic excitation: richness + air = the "sweet/dopamine" factor, kept parallel so it stays clean.
-    color: { enabled: true, drive: 5.6, body: 20, warmth: 14, harmonics: 56, air: 28, mix: 44, mode: 'modern' },
+    // stereoMid drives the real-side mid exciter so the genuine L-R "bersahutan" mid detail stays alive and energetic.
+    color: { enabled: true, drive: 5.6, body: 20, warmth: 14, harmonics: 56, air: 28, mix: 44, stereoMid: 66, mode: 'modern' },
     // Lively multiband image. monoBass keeps the low end solid & mono (no LF phase smear);
     // the synthetic side is added antisymmetrically so it cancels in the mono sum -> zero phase issue.
     width: { enabled: true, width: 134, lowWidth: 100, lowMidWidth: 108, midWidth: 120, highWidth: 160, sourceProtect: 90, monoBass: true, monoBassFreq: 150, sideTone: 3.0 },
@@ -410,6 +414,7 @@ export function normalizeColor(color = {}) {
     warmth: clampNumber(color.warmth ?? DEFAULT_COLOR.warmth, -24, 24),
     air: clampNumber(color.air ?? DEFAULT_COLOR.air, -24, 48),
     mix: clampNumber(color.mix ?? DEFAULT_COLOR.mix, 0, 100),
+    stereoMid: clampNumber(color.stereoMid ?? DEFAULT_COLOR.stereoMid, 0, 100),
     mode: ['clean', 'warm', 'modern'].includes(color.mode) ? color.mode : DEFAULT_COLOR.mode
   };
 }

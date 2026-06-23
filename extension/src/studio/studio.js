@@ -937,6 +937,7 @@ function renderColorControls() {
     ['warmth', 'Warmth', -24, 24, 0.5, '%'],
     ['harmonics', 'Exciter', 0, 100, 1, '%'],
     ['air', 'Air', -24, 48, 0.5, '%'],
+    ['stereoMid', 'Stereo Mid', 0, 100, 1, '%'],
     ['mix', 'Mix', 0, 100, 1, '%']
   ];
   for (const [field, label, min, max, step, unit] of controls) {
