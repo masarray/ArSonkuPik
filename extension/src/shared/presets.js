@@ -18,11 +18,11 @@ export const WEB_AUDIO_TYPE = {
 
 export const DEFAULT_EQ_BANDS = [
   { id: 'cut-low', label: 'Sub Clean', type: 'lowcut', frequency: 26, gain: 0, q: 0.707, slope: 24, enabled: true },
-  { id: 'low-body', label: 'Deep Body', type: 'lowshelf', frequency: 78, gain: 1.55, q: 0.68, slope: 12, enabled: true },
-  { id: 'mud-clean', label: 'Mud Clean', type: 'bell', frequency: 285, gain: -1.25, q: 1.12, slope: 12, enabled: true },
-  { id: 'presence', label: 'Presence', type: 'bell', frequency: 2450, gain: 0.9, q: 0.92, slope: 12, enabled: true },
-  { id: 'detail', label: 'Detail', type: 'bell', frequency: 5200, gain: 1.2, q: 1.12, slope: 12, enabled: true },
-  { id: 'sparkle', label: 'Sparkle', type: 'highshelf', frequency: 11800, gain: 1.65, q: 0.66, slope: 12, enabled: true }
+  { id: 'low-body', label: 'Deep Body', type: 'lowshelf', frequency: 82, gain: 1.35, q: 0.68, slope: 12, enabled: true },
+  { id: 'mud-clean', label: 'Mud Clean', type: 'bell', frequency: 330, gain: -0.95, q: 0.92, slope: 12, enabled: true },
+  { id: 'presence', label: 'Presence', type: 'bell', frequency: 2300, gain: 0.78, q: 0.78, slope: 12, enabled: true },
+  { id: 'detail', label: 'Detail', type: 'bell', frequency: 5600, gain: 0.86, q: 0.88, slope: 12, enabled: true },
+  { id: 'sparkle', label: 'Sparkle', type: 'highshelf', frequency: 11800, gain: 1.38, q: 0.62, slope: 12, enabled: true }
 ];
 
 export const DEFAULT_COMPRESSOR = {
@@ -38,27 +38,27 @@ export const DEFAULT_COMPRESSOR = {
 
 export const DEFAULT_COLOR = {
   enabled: true,
-  drive: 4.8,
-  body: 17,
-  harmonics: 48,
-  warmth: 11,
-  air: 20,
-  mix: 40,
-  stereoMid: 42,
+  drive: 4.35,
+  body: 16,
+  harmonics: 38,
+  warmth: 12,
+  air: 16,
+  mix: 34,
+  stereoMid: 38,
   mode: 'modern'
 };
 
 export const DEFAULT_WIDTH = {
   enabled: true,
-  width: 124,
+  width: 120,
   lowWidth: 100,
-  lowMidWidth: 104,
-  midWidth: 112,
-  highWidth: 144,
-  sourceProtect: 88,
+  lowMidWidth: 102,
+  midWidth: 108,
+  highWidth: 136,
+  sourceProtect: 93,
   monoBass: true,
   monoBassFreq: 150,
-  sideTone: 2.2
+  sideTone: 1.4
 };
 
 export const DEFAULT_OUTPUT = {
@@ -74,7 +74,7 @@ export const DEFAULT_OUTPUT = {
   outputRouteStatus: 'default'
 };
 
-export const DEFAULT_MASTER_REVISION = 'smart-low-mid-body-v13';
+export const DEFAULT_MASTER_REVISION = 'context-dopamine-v14';
 
 export const PRIMARY_MASTER_PRESET_IDS = [
   'default',
@@ -114,33 +114,33 @@ export const FACTORY_PRESETS = [
   p({
     id: 'max-enhancer',
     name: 'Max Enhancer',
-    description: 'Maximum musical enhancement: solid powerful low, crisp clear vocals, sparkling air, and lively stereo — exciting and dopamine-rich but never fatiguing, fully mono-safe.',
+    description: 'Maximum musical enhancement: fuller vocal body, sweet mid presence, tasteful side tickle, and lively stereo — dopamine-rich, resonance-safe, and long-listening friendly.',
     eq: [
       // Tight sub clean to protect headroom for the louder, denser master.
       { ...DEFAULT_EQ_BANDS[0], frequency: 28, slope: 24 },
       // Solid, powerful low body (punch + warmth) without boom.
-      { ...DEFAULT_EQ_BANDS[1], frequency: 92, gain: 2.2, q: 0.7 },
-      // Scoop low-mid mud so vocals and mix read clearly.
-      { ...DEFAULT_EQ_BANDS[2], frequency: 345, gain: -1.15, q: 1.02 },
-      // ~3 kHz presence/excitement — vocal clarity and "buzz" that pulls focus.
-      { ...DEFAULT_EQ_BANDS[3], frequency: 2920, gain: 1.78, q: 0.88 },
-      // ~7 kHz definition for crisp ("renyah") detail, above the harsh 4-5 kHz core.
-      { ...DEFAULT_EQ_BANDS[4], frequency: 6400, gain: 1.42, q: 1.05 },
-      // High shelf air/sparkle for an open, shiny, expensive top end.
-      { ...DEFAULT_EQ_BANDS[5], frequency: 12200, gain: 2.4, q: 0.6 }
+      { ...DEFAULT_EQ_BANDS[1], frequency: 88, gain: 1.55, q: 0.66 },
+      // Gentle low-mid cleanup only; the smart body path now supplies body without nasal peaks.
+      { ...DEFAULT_EQ_BANDS[2], frequency: 380, gain: -0.52, q: 0.62 },
+      // Broad vocal presence. Avoid narrow 2–4 kHz emphasis that can expose resonances.
+      { ...DEFAULT_EQ_BANDS[3], frequency: 2550, gain: 0.96, q: 0.56 },
+      // Soft crisp detail, less peaky than the previous Max curve.
+      { ...DEFAULT_EQ_BANDS[4], frequency: 6200, gain: 0.58, q: 0.66 },
+      // Air shelf stays open but no longer over-feeds the exciter.
+      { ...DEFAULT_EQ_BANDS[5], frequency: 12200, gain: 1.42, q: 0.56 }
     ],
     // Gentle glue with strong parallel blend: dense and powerful, transients intact.
     // Slightly slower attack + a touch more parallel lets mid-range transients
     // "tickle" through instead of being flattened.
-    compressor: { threshold: -25, ratio: 2.0, knee: 22, attack: 0.028, release: 0.16, makeupGain: 1.2, parallelMix: 90 },
+    compressor: { threshold: -24.2, ratio: 1.8, knee: 24, attack: 0.032, release: 0.19, makeupGain: 0.82, parallelMix: 90 },
     // Modern harmonic excitation: richness + air = the "sweet/dopamine" factor, kept parallel so it stays clean.
     // stereoMid drives the real-side mid exciter so the genuine L-R "bersahutan" mid detail stays alive and energetic.
-    color: { enabled: true, drive: 5.55, body: 23, warmth: 18, harmonics: 61, air: 27, mix: 44, stereoMid: 90, mode: 'modern' },
+    color: { enabled: true, drive: 4.22, body: 18, warmth: 14, harmonics: 38, air: 16, mix: 33, stereoMid: 74, mode: 'modern' },
     // Lively multiband image. monoBass keeps the low end solid & mono (no LF phase smear);
     // the synthetic side is added antisymmetrically so it cancels in the mono sum -> zero phase issue.
-    width: { enabled: true, width: 132, lowWidth: 100, lowMidWidth: 106, midWidth: 116, highWidth: 154, sourceProtect: 94, monoBass: true, monoBassFreq: 155, sideTone: 2.8 },
+    width: { enabled: true, width: 123, lowWidth: 100, lowMidWidth: 102, midWidth: 107, highWidth: 136, sourceProtect: 97, monoBass: true, monoBassFreq: 165, sideTone: 1.25 },
     // Loud and punchy with punch-protect on the limiter so it never pumps or fatigues.
-    output: { outputGain: -1.4, limiterDrive: 0.8, limiterCeiling: -1, punchProtect: true }
+    output: { outputGain: -1.6, limiterDrive: 0.68, limiterCeiling: -1, punchProtect: true }
   }),
   p({
     id: 'audiophile-pop',
@@ -148,16 +148,16 @@ export const FACTORY_PRESETS = [
     description: 'Popular audiophile balance: clean vocal center, refined sparkle, controlled bass, non-fatiguing.',
     eq: [
       { ...DEFAULT_EQ_BANDS[0], frequency: 30, slope: 24 },
-      { ...DEFAULT_EQ_BANDS[1], frequency: 86, gain: 1.15, q: 0.7 },
-      { ...DEFAULT_EQ_BANDS[2], frequency: 340, gain: -0.95, q: 1.02 },
-      { id: 'vocal-focus-audiophile', label: 'Vocal Focus', type: 'bell', frequency: 1850, gain: 0.65, q: 0.8, slope: 12, enabled: true },
-      { ...DEFAULT_EQ_BANDS[4], frequency: 5000, gain: 1.1, q: 1.1 },
-      { ...DEFAULT_EQ_BANDS[5], frequency: 12400, gain: 1.9, q: 0.62 }
+      { ...DEFAULT_EQ_BANDS[1], frequency: 84, gain: 0.95, q: 0.7 },
+      { ...DEFAULT_EQ_BANDS[2], frequency: 350, gain: -0.72, q: 0.88 },
+      { id: 'vocal-focus-audiophile', label: 'Vocal Focus', type: 'bell', frequency: 1900, gain: 0.52, q: 0.72, slope: 12, enabled: true },
+      { ...DEFAULT_EQ_BANDS[4], frequency: 5200, gain: 0.72, q: 0.86 },
+      { ...DEFAULT_EQ_BANDS[5], frequency: 12400, gain: 1.35, q: 0.58 }
     ],
     compressor: { threshold: -24, ratio: 1.65, knee: 22, attack: 0.032, release: 0.22, makeupGain: 0.55, parallelMix: 90 },
-    color: { enabled: true, drive: 3.55, body: 13, warmth: 10, harmonics: 35, air: 16, mix: 30, stereoMid: 42, mode: 'modern' },
-    width: { enabled: true, width: 122, lowWidth: 100, lowMidWidth: 102, midWidth: 108, highWidth: 138, sourceProtect: 92, monoBass: true, monoBassFreq: 150, sideTone: 1.8 },
-    output: { outputGain: -2.0, limiterDrive: 0.35, limiterCeiling: -1 }
+    color: { enabled: true, drive: 3.18, body: 14, warmth: 11, harmonics: 31, air: 13, mix: 27, stereoMid: 36, mode: 'modern' },
+    width: { enabled: true, width: 118, lowWidth: 100, lowMidWidth: 101, midWidth: 105, highWidth: 130, sourceProtect: 95, monoBass: true, monoBassFreq: 150, sideTone: 1.1 },
+    output: { outputGain: -2.1, limiterDrive: 0.28, limiterCeiling: -1 }
   }),
   p({
     id: 'pro-music',
@@ -165,17 +165,17 @@ export const FACTORY_PRESETS = [
     description: 'Punchy bass, thick groove, stronger transient glue, and sparkling musical detail.',
     eq: [
       { ...DEFAULT_EQ_BANDS[0], frequency: 28, slope: 24 },
-      { ...DEFAULT_EQ_BANDS[1], frequency: 82, gain: 2.35 },
-      { ...DEFAULT_EQ_BANDS[2], frequency: 335, gain: -0.85, q: 1.02 },
-      { id: 'mid-thick', label: 'Mid Thick', type: 'bell', frequency: 620, gain: 0.75, q: 0.85, slope: 12, enabled: true },
-      { ...DEFAULT_EQ_BANDS[3], frequency: 2200, gain: 0.95, q: 1.0 },
-      { ...DEFAULT_EQ_BANDS[4], frequency: 5200, gain: 1.35, q: 1.2 },
-      { ...DEFAULT_EQ_BANDS[5], frequency: 11800, gain: 2.0 }
+      { ...DEFAULT_EQ_BANDS[1], frequency: 82, gain: 2.0 },
+      { ...DEFAULT_EQ_BANDS[2], frequency: 360, gain: -0.62, q: 0.86 },
+      { id: 'mid-thick', label: 'Mid Thick', type: 'bell', frequency: 520, gain: 0.52, q: 0.78, slope: 12, enabled: true },
+      { ...DEFAULT_EQ_BANDS[3], frequency: 2150, gain: 0.78, q: 0.78 },
+      { ...DEFAULT_EQ_BANDS[4], frequency: 5000, gain: 0.92, q: 0.86 },
+      { ...DEFAULT_EQ_BANDS[5], frequency: 11800, gain: 1.45 }
     ],
-    compressor: { threshold: -23.5, ratio: 2.05, knee: 16, attack: 0.024, release: 0.17, makeupGain: 0.75, parallelMix: 91 },
-    color: { enabled: true, drive: 5.08, body: 23, warmth: 16, harmonics: 54, air: 20, mix: 42, stereoMid: 76, mode: 'modern' },
-    width: { enabled: true, width: 132, lowWidth: 100, lowMidWidth: 104, midWidth: 114, highWidth: 150, sourceProtect: 93, monoBass: true, monoBassFreq: 155, sideTone: 2.4 },
-    output: { outputGain: -2.4, limiterDrive: 0.72, limiterCeiling: -1 }
+    compressor: { threshold: -23.8, ratio: 1.95, knee: 18, attack: 0.026, release: 0.18, makeupGain: 0.68, parallelMix: 91 },
+    color: { enabled: true, drive: 4.62, body: 22, warmth: 17, harmonics: 45, air: 16, mix: 37, stereoMid: 68, mode: 'modern' },
+    width: { enabled: true, width: 126, lowWidth: 100, lowMidWidth: 102, midWidth: 109, highWidth: 140, sourceProtect: 95, monoBass: true, monoBassFreq: 155, sideTone: 1.45 },
+    output: { outputGain: -2.5, limiterDrive: 0.58, limiterCeiling: -1 }
   }),
   p({
     id: 'open-air-field',
@@ -183,16 +183,16 @@ export const FACTORY_PRESETS = [
     description: 'Sound lapangan/open-air preset: bigger bass contour, forward vocal guard, strong side-air sparkle, limiter-safe.',
     eq: [
       { ...DEFAULT_EQ_BANDS[0], frequency: 32, slope: 24 },
-      { id: 'field-low-contour', label: 'Field Low Contour', type: 'lowshelf', frequency: 92, gain: 3.0, q: 0.72, slope: 12, enabled: true },
-      { id: 'field-lowmid-clean', label: 'Low-Mid Clean', type: 'bell', frequency: 265, gain: -2.2, q: 1.05, slope: 12, enabled: true },
-      { id: 'field-vocal-guard', label: 'Vocal Guard', type: 'bell', frequency: 2100, gain: 1.25, q: 0.82, slope: 12, enabled: true },
-      { id: 'field-bite', label: 'Field Bite', type: 'bell', frequency: 4300, gain: 0.55, q: 1.05, slope: 12, enabled: true },
-      { id: 'field-air', label: 'Open Air', type: 'highshelf', frequency: 11800, gain: 0.85, q: 0.64, slope: 12, enabled: true }
+      { id: 'field-low-contour', label: 'Field Low Contour', type: 'lowshelf', frequency: 92, gain: 2.45, q: 0.68, slope: 12, enabled: true },
+      { id: 'field-lowmid-clean', label: 'Low-Mid Clean', type: 'bell', frequency: 330, gain: -1.28, q: 0.92, slope: 12, enabled: true },
+      { id: 'field-vocal-guard', label: 'Vocal Guard', type: 'bell', frequency: 2050, gain: 0.92, q: 0.72, slope: 12, enabled: true },
+      { id: 'field-bite', label: 'Field Bite', type: 'bell', frequency: 4300, gain: 0.32, q: 0.90, slope: 12, enabled: true },
+      { id: 'field-air', label: 'Open Air', type: 'highshelf', frequency: 11600, gain: 0.65, q: 0.58, slope: 12, enabled: true }
     ],
-    compressor: { threshold: -25, ratio: 2.25, knee: 18, attack: 0.026, release: 0.20, makeupGain: 0.55, parallelMix: 88 },
-    color: { enabled: true, drive: 5.16, body: 23, warmth: 15, harmonics: 52, air: 17, mix: 42, stereoMid: 64, mode: 'modern' },
-    width: { enabled: true, width: 126, lowWidth: 100, lowMidWidth: 101, midWidth: 108, highWidth: 142, sourceProtect: 94, monoBass: true, monoBassFreq: 190, sideTone: 2.0 },
-    output: { outputGain: -3.2, limiterDrive: 0.72, limiterCeiling: -1.2 }
+    compressor: { threshold: -25.2, ratio: 2.05, knee: 20, attack: 0.028, release: 0.22, makeupGain: 0.45, parallelMix: 88 },
+    color: { enabled: true, drive: 4.48, body: 21, warmth: 15, harmonics: 42, air: 13, mix: 36, stereoMid: 54, mode: 'modern' },
+    width: { enabled: true, width: 121, lowWidth: 100, lowMidWidth: 100, midWidth: 105, highWidth: 132, sourceProtect: 96, monoBass: true, monoBassFreq: 190, sideTone: 1.2 },
+    output: { outputGain: -3.1, limiterDrive: 0.52, limiterCeiling: -1.2 }
   }),
   p({
     id: 'movie-dolby',
@@ -200,18 +200,18 @@ export const FACTORY_PRESETS = [
     description: 'Thick sub, clean low-mid, guarded dialogue clarity, smooth cinematic width.',
     eq: [
       { ...DEFAULT_EQ_BANDS[0], frequency: 24, slope: 24 },
-      { ...DEFAULT_EQ_BANDS[1], frequency: 58, gain: 3.0, q: 0.72 },
-      { id: 'sub-body', label: 'Sub Body', type: 'bell', frequency: 115, gain: 1.1, q: 0.9, slope: 12, enabled: true },
-      { id: 'box-clean', label: 'De-box', type: 'bell', frequency: 360, gain: -2.2, q: 1.1, slope: 12, enabled: true },
-      { id: 'de-honk', label: 'De-honk', type: 'bell', frequency: 650, gain: -1.15, q: 1.0, slope: 12, enabled: true },
-      { id: 'dialogue', label: 'Dialogue', type: 'bell', frequency: 2900, gain: 1.55, q: 0.9, slope: 12, enabled: true },
-      { ...DEFAULT_EQ_BANDS[4], frequency: 5600, gain: 0.75, q: 1.1 },
-      { ...DEFAULT_EQ_BANDS[5], frequency: 12000, gain: 1.55 }
+      { ...DEFAULT_EQ_BANDS[1], frequency: 58, gain: 2.35, q: 0.70 },
+      { id: 'sub-body', label: 'Sub Body', type: 'bell', frequency: 118, gain: 0.82, q: 0.84, slope: 12, enabled: true },
+      { id: 'box-clean', label: 'De-box', type: 'bell', frequency: 370, gain: -1.55, q: 0.95, slope: 12, enabled: true },
+      { id: 'de-honk', label: 'De-honk', type: 'bell', frequency: 680, gain: -0.85, q: 0.88, slope: 12, enabled: true },
+      { id: 'dialogue', label: 'Dialogue', type: 'bell', frequency: 2650, gain: 1.12, q: 0.78, slope: 12, enabled: true },
+      { ...DEFAULT_EQ_BANDS[4], frequency: 5200, gain: 0.45, q: 0.86 },
+      { ...DEFAULT_EQ_BANDS[5], frequency: 11800, gain: 1.05 }
     ],
     compressor: { threshold: -24, ratio: 1.7, knee: 18, attack: 0.034, release: 0.28, makeupGain: 0.35, parallelMix: 90 },
-    color: { enabled: true, drive: 3.82, body: 14, warmth: 13, harmonics: 37, air: 15, mix: 34, stereoMid: 34, mode: 'warm' },
-    width: { enabled: true, width: 126, lowWidth: 100, lowMidWidth: 102, midWidth: 110, highWidth: 140, sourceProtect: 95, monoBass: true, monoBassFreq: 165, sideTone: 1.6 },
-    output: { outputGain: -2.2, limiterDrive: 0.28, limiterCeiling: -1.1 }
+    color: { enabled: true, drive: 3.10, body: 14, warmth: 14, harmonics: 28, air: 10, mix: 28, stereoMid: 26, mode: 'warm' },
+    width: { enabled: true, width: 119, lowWidth: 100, lowMidWidth: 101, midWidth: 105, highWidth: 130, sourceProtect: 96, monoBass: true, monoBassFreq: 165, sideTone: 0.8 },
+    output: { outputGain: -2.4, limiterDrive: 0.22, limiterCeiling: -1.1 }
   }),
   p({
     id: 'podcast',
@@ -220,34 +220,34 @@ export const FACTORY_PRESETS = [
     eq: [
       { ...DEFAULT_EQ_BANDS[0], frequency: 86, slope: 24 },
       { ...DEFAULT_EQ_BANDS[1], frequency: 118, gain: 0.1 },
-      { id: 'vocal-chest', label: 'Vocal Chest', type: 'bell', frequency: 165, gain: 0.45, q: 0.78, slope: 12, enabled: true },
-      { ...DEFAULT_EQ_BANDS[2], frequency: 310, gain: -2.6, q: 1.12 },
-      { ...DEFAULT_EQ_BANDS[3], frequency: 1950, gain: 1.1, q: 0.9 },
-      { ...DEFAULT_EQ_BANDS[4], frequency: 4000, gain: 0.8, q: 1.0 },
+      { id: 'vocal-chest', label: 'Vocal Chest', type: 'bell', frequency: 190, gain: 0.52, q: 0.72, slope: 12, enabled: true },
+      { ...DEFAULT_EQ_BANDS[2], frequency: 330, gain: -2.1, q: 1.00 },
+      { ...DEFAULT_EQ_BANDS[3], frequency: 1850, gain: 0.88, q: 0.76 },
+      { ...DEFAULT_EQ_BANDS[4], frequency: 3600, gain: 0.48, q: 0.82 },
       { id: 'sibilance-soften', label: 'Sibilance Smooth', type: 'bell', frequency: 6900, gain: -1.8, q: 1.8, slope: 12, enabled: true },
       { ...DEFAULT_EQ_BANDS[5], frequency: 11200, gain: 0.4 }
     ],
     compressor: { threshold: -26.5, ratio: 2.0, knee: 24, attack: 0.018, release: 0.26, makeupGain: 0.45, parallelMix: 80 },
-    color: { enabled: true, drive: 1.4, body: 5, warmth: 7, harmonics: 10, air: 4, mix: 11, stereoMid: 0, mode: 'clean' },
+    color: { enabled: true, drive: 1.10, body: 6, warmth: 8, harmonics: 7, air: 2, mix: 8, stereoMid: 0, mode: 'clean' },
     width: { enabled: false, width: 100, lowWidth: 100, lowMidWidth: 100, midWidth: 100, highWidth: 105, monoBass: true, monoBassFreq: 145, sideTone: 0 },
-    output: { outputGain: -2.8, limiterDrive: 0.08, limiterCeiling: -1.3 }
+    output: { outputGain: -2.9, limiterDrive: 0.06, limiterCeiling: -1.3 }
   }),
   p({
     id: 'night-listening',
     name: 'Night Listening',
-    description: 'Soft, warm and non-fatiguing for low-volume listening.',
+    description: 'Soft, warm sleep-friendly dopamine: low-volume comfort, rounded presence, relaxed highs, and no stereo stimulation.',
     eq: [
       { ...DEFAULT_EQ_BANDS[0], frequency: 42, slope: 12 },
-      { ...DEFAULT_EQ_BANDS[1], frequency: 105, gain: -1.8 },
-      { ...DEFAULT_EQ_BANDS[2], frequency: 260, gain: -0.8, q: 1.0 },
-      { ...DEFAULT_EQ_BANDS[3], frequency: 1850, gain: 0.6, q: 1.1 },
-      { ...DEFAULT_EQ_BANDS[4], frequency: 5200, gain: -0.8, q: 1.0 },
-      { ...DEFAULT_EQ_BANDS[5], frequency: 8400, gain: -2.4 }
+      { ...DEFAULT_EQ_BANDS[1], frequency: 98, gain: -1.15 },
+      { ...DEFAULT_EQ_BANDS[2], frequency: 360, gain: -0.55, q: 0.82 },
+      { ...DEFAULT_EQ_BANDS[3], frequency: 1500, gain: 0.22, q: 0.75 },
+      { ...DEFAULT_EQ_BANDS[4], frequency: 4800, gain: -1.25, q: 0.80 },
+      { ...DEFAULT_EQ_BANDS[5], frequency: 7800, gain: -3.1 }
     ],
-    compressor: { threshold: -34, ratio: 3.2, knee: 20, attack: 0.018, release: 0.34, makeupGain: 1.4, parallelMix: 78 },
-    color: { enabled: true, drive: 1.3, body: -3, warmth: 7, harmonics: 7, air: -8, mix: 10, stereoMid: 0, mode: 'warm' },
-    width: { enabled: false, width: 98, lowWidth: 100, lowMidWidth: 96, midWidth: 94, highWidth: 100, monoBass: true, monoBassFreq: 120, sideTone: -1 },
-    output: { outputGain: -5, limiterDrive: 0.08, limiterCeiling: -1.5 }
+    compressor: { threshold: -33, ratio: 2.65, knee: 24, attack: 0.026, release: 0.42, makeupGain: 1.0, parallelMix: 72 },
+    color: { enabled: true, drive: 0.92, body: 3, warmth: 10, harmonics: 5, air: -10, mix: 12, stereoMid: 0, mode: 'warm' },
+    width: { enabled: false, width: 96, lowWidth: 100, lowMidWidth: 96, midWidth: 92, highWidth: 98, sourceProtect: 100, monoBass: true, monoBassFreq: 120, sideTone: -1.4 },
+    output: { outputGain: -5.2, limiterDrive: 0.05, limiterCeiling: -1.5 }
   })
 ];
 
@@ -265,12 +265,12 @@ export const MODULE_PRESETS = {
       eqEnabled: true,
       eq: [
         { ...DEFAULT_EQ_BANDS[0], frequency: 28, slope: 24 },
-        { ...DEFAULT_EQ_BANDS[1], frequency: 82, gain: 2.1 },
-        { ...DEFAULT_EQ_BANDS[2], frequency: 230, gain: -1.1, q: 1.05 },
-        { id: 'mid-thick-eq', label: 'Mid Thick', type: 'bell', frequency: 620, gain: 0.7, q: 0.85, slope: 12, enabled: true },
-        { ...DEFAULT_EQ_BANDS[3], frequency: 2100, gain: 0.8, q: 1.0 },
-        { ...DEFAULT_EQ_BANDS[4], frequency: 5200, gain: 1.1, q: 1.2 },
-        { ...DEFAULT_EQ_BANDS[5], frequency: 11800, gain: 1.8 }
+        { ...DEFAULT_EQ_BANDS[1], frequency: 82, gain: 1.85 },
+        { ...DEFAULT_EQ_BANDS[2], frequency: 350, gain: -0.65, q: 0.86 },
+        { id: 'mid-thick-eq', label: 'Mid Thick', type: 'bell', frequency: 520, gain: 0.48, q: 0.78, slope: 12, enabled: true },
+        { ...DEFAULT_EQ_BANDS[3], frequency: 2100, gain: 0.62, q: 0.78 },
+        { ...DEFAULT_EQ_BANDS[4], frequency: 5000, gain: 0.78, q: 0.86 },
+        { ...DEFAULT_EQ_BANDS[5], frequency: 11800, gain: 1.35 }
       ]
     },
     {
@@ -280,11 +280,11 @@ export const MODULE_PRESETS = {
       eq: [
         { ...DEFAULT_EQ_BANDS[0], frequency: 70, slope: 24 },
         { ...DEFAULT_EQ_BANDS[1], frequency: 130, gain: 0.6 },
-        { id: 'dialog-chest-eq', label: 'Chest', type: 'bell', frequency: 190, gain: 0.8, q: 0.85, slope: 12, enabled: true },
+        { id: 'dialog-chest-eq', label: 'Chest', type: 'bell', frequency: 190, gain: 0.58, q: 0.78, slope: 12, enabled: true },
         { ...DEFAULT_EQ_BANDS[2], frequency: 310, gain: -1.8, q: 1.15 },
-        { ...DEFAULT_EQ_BANDS[3], frequency: 1650, gain: 1.4, q: 1.0 },
-        { ...DEFAULT_EQ_BANDS[4], frequency: 4200, gain: 1.8, q: 1.1 },
-        { ...DEFAULT_EQ_BANDS[5], frequency: 10400, gain: 0.8 }
+        { ...DEFAULT_EQ_BANDS[3], frequency: 1650, gain: 0.92, q: 0.78 },
+        { ...DEFAULT_EQ_BANDS[4], frequency: 3900, gain: 0.85, q: 0.84 },
+        { ...DEFAULT_EQ_BANDS[5], frequency: 10400, gain: 0.45 }
       ]
     },
     {
@@ -295,9 +295,9 @@ export const MODULE_PRESETS = {
         { ...DEFAULT_EQ_BANDS[0], frequency: 34, slope: 24 },
         { ...DEFAULT_EQ_BANDS[1], frequency: 96, gain: 0.6 },
         { ...DEFAULT_EQ_BANDS[2], frequency: 260, gain: -0.9, q: 1 },
-        { ...DEFAULT_EQ_BANDS[3], frequency: 2400, gain: 0.9, q: 1.05 },
-        { ...DEFAULT_EQ_BANDS[4], frequency: 6200, gain: 1.5, q: 1.1 },
-        { ...DEFAULT_EQ_BANDS[5], frequency: 12800, gain: 2.0 }
+        { ...DEFAULT_EQ_BANDS[3], frequency: 2300, gain: 0.55, q: 0.78 },
+        { ...DEFAULT_EQ_BANDS[4], frequency: 6400, gain: 0.82, q: 0.78 },
+        { ...DEFAULT_EQ_BANDS[5], frequency: 12800, gain: 1.28 }
       ]
     },
     {
@@ -306,11 +306,11 @@ export const MODULE_PRESETS = {
       eqEnabled: true,
       eq: [
         { ...DEFAULT_EQ_BANDS[0], frequency: 32, slope: 24 },
-        { id: 'field-low-contour-eq', label: 'Field Low Contour', type: 'lowshelf', frequency: 92, gain: 3.0, q: 0.72, slope: 12, enabled: true },
-        { id: 'field-lowmid-clean-eq', label: 'Low-Mid Clean', type: 'bell', frequency: 265, gain: -2.2, q: 1.05, slope: 12, enabled: true },
-        { id: 'field-vocal-guard-eq', label: 'Vocal Guard', type: 'bell', frequency: 2100, gain: 1.25, q: 0.82, slope: 12, enabled: true },
-        { id: 'field-bite-eq', label: 'Field Bite', type: 'bell', frequency: 4700, gain: 1.55, q: 1.05, slope: 12, enabled: true },
-        { id: 'field-air-eq', label: 'Open Air', type: 'highshelf', frequency: 11800, gain: 0.85, q: 0.64, slope: 12, enabled: true }
+        { id: 'field-low-contour-eq', label: 'Field Low Contour', type: 'lowshelf', frequency: 92, gain: 2.45, q: 0.68, slope: 12, enabled: true },
+        { id: 'field-lowmid-clean-eq', label: 'Low-Mid Clean', type: 'bell', frequency: 330, gain: -1.28, q: 0.92, slope: 12, enabled: true },
+        { id: 'field-vocal-guard-eq', label: 'Vocal Guard', type: 'bell', frequency: 2050, gain: 0.92, q: 0.72, slope: 12, enabled: true },
+        { id: 'field-bite-eq', label: 'Field Bite', type: 'bell', frequency: 4300, gain: 0.42, q: 0.90, slope: 12, enabled: true },
+        { id: 'field-air-eq', label: 'Open Air', type: 'highshelf', frequency: 11600, gain: 0.65, q: 0.58, slope: 12, enabled: true }
       ]
     },
     {
@@ -320,46 +320,46 @@ export const MODULE_PRESETS = {
       eq: [
         { ...DEFAULT_EQ_BANDS[0], frequency: 42, slope: 12 },
         { ...DEFAULT_EQ_BANDS[1], frequency: 105, gain: -1.8 },
-        { ...DEFAULT_EQ_BANDS[2], frequency: 260, gain: -0.8, q: 1.0 },
-        { ...DEFAULT_EQ_BANDS[3], frequency: 1850, gain: 0.6, q: 1.1 },
-        { ...DEFAULT_EQ_BANDS[4], frequency: 5200, gain: -0.8, q: 1.0 },
-        { ...DEFAULT_EQ_BANDS[5], frequency: 8400, gain: -2.4 }
+        { ...DEFAULT_EQ_BANDS[2], frequency: 360, gain: -0.55, q: 0.82 },
+        { ...DEFAULT_EQ_BANDS[3], frequency: 1500, gain: 0.22, q: 0.75 },
+        { ...DEFAULT_EQ_BANDS[4], frequency: 4800, gain: -1.25, q: 0.80 },
+        { ...DEFAULT_EQ_BANDS[5], frequency: 7800, gain: -3.1 }
       ]
     }
   ],
   compressor: [
     { id: 'master-glue', name: 'Master Glue', compressor: DEFAULT_COMPRESSOR },
-    { id: 'punch-glue', name: 'Punch Glue', compressor: { threshold: -23, ratio: 2.0, knee: 14, attack: 0.022, release: 0.16, makeupGain: 0.8, parallelMix: 92, enabled: true } },
-    { id: 'dialog-leveler', name: 'Dialog Leveler', compressor: { threshold: -26.5, ratio: 2.15, knee: 22, attack: 0.012, release: 0.22, makeupGain: 0.7, parallelMix: 86, enabled: true } },
-    { id: 'vocal-smooth', name: 'Vocal Smooth', compressor: { threshold: -27, ratio: 2.25, knee: 22, attack: 0.014, release: 0.24, makeupGain: 0.8, parallelMix: 84, enabled: true } },
-    { id: 'night-level', name: 'Night Level', compressor: { threshold: -34, ratio: 3.2, knee: 20, attack: 0.018, release: 0.34, makeupGain: 1.4, parallelMix: 78, enabled: true } }
+    { id: 'punch-glue', name: 'Punch Glue', compressor: { threshold: -23.8, ratio: 1.95, knee: 18, attack: 0.026, release: 0.18, makeupGain: 0.68, parallelMix: 91, enabled: true } },
+    { id: 'dialog-leveler', name: 'Dialog Leveler', compressor: { threshold: -26.8, ratio: 1.95, knee: 24, attack: 0.016, release: 0.26, makeupGain: 0.55, parallelMix: 84, enabled: true } },
+    { id: 'vocal-smooth', name: 'Vocal Smooth', compressor: { threshold: -27.2, ratio: 2.05, knee: 24, attack: 0.018, release: 0.28, makeupGain: 0.62, parallelMix: 82, enabled: true } },
+    { id: 'night-level', name: 'Night Level', compressor: { threshold: -33, ratio: 2.65, knee: 24, attack: 0.026, release: 0.42, makeupGain: 1.0, parallelMix: 72, enabled: true } }
   ],
   color: [
     { id: 'signature-glow', name: 'MasAri Glow', color: DEFAULT_COLOR },
-    { id: 'clean-glow', name: 'Clean Glow', color: { enabled: true, drive: 2.2, body: 7, warmth: 5, harmonics: 22, air: 12, mix: 26, stereoMid: 12, mode: 'clean' } },
-    { id: 'modern-exciter', name: 'Analog Lift', color: { enabled: true, drive: 4.72, body: 16, warmth: 11, harmonics: 49, air: 18, mix: 39, stereoMid: 60, mode: 'modern' } },
-    { id: 'side-sparkle', name: 'Silky Sparkle', color: { enabled: true, drive: 3.52, body: 9, warmth: 7, harmonics: 39, air: 21, mix: 32, stereoMid: 50, mode: 'modern' } },
-    { id: 'field-sonic', name: 'Open Air Thick', color: { enabled: true, drive: 5.16, body: 23, warmth: 15, harmonics: 52, air: 17, mix: 42, stereoMid: 64, mode: 'modern' } },
-    { id: 'voice-polish', name: 'Voice Thick', color: { enabled: true, drive: 1.4, body: 5, warmth: 7, harmonics: 10, air: 4, mix: 11, stereoMid: 0, mode: 'clean' } },
-    { id: 'thick-sweet', name: 'Thick Warm', color: { enabled: true, drive: 3.92, body: 15, warmth: 15, harmonics: 36, air: 12, mix: 36, stereoMid: 34, mode: 'warm' } },
-    { id: 'night-warm', name: 'Night Warm', color: { enabled: true, drive: 1.3, body: -3, warmth: 7, harmonics: 7, air: -8, mix: 10, stereoMid: 0, mode: 'warm' } }
+    { id: 'clean-glow', name: 'Clean Glow', color: { enabled: true, drive: 1.85, body: 8, warmth: 6, harmonics: 17, air: 9, mix: 22, stereoMid: 8, mode: 'clean' } },
+    { id: 'modern-exciter', name: 'Analog Lift', color: { enabled: true, drive: 3.72, body: 15, warmth: 12, harmonics: 33, air: 13, mix: 29, stereoMid: 44, mode: 'modern' } },
+    { id: 'side-sparkle', name: 'Silky Sparkle', color: { enabled: true, drive: 3.05, body: 10, warmth: 8, harmonics: 31, air: 16, mix: 27, stereoMid: 42, mode: 'modern' } },
+    { id: 'field-sonic', name: 'Open Air Thick', color: { enabled: true, drive: 3.82, body: 18, warmth: 13, harmonics: 33, air: 12, mix: 29, stereoMid: 42, mode: 'modern' } },
+    { id: 'voice-polish', name: 'Voice Thick', color: { enabled: true, drive: 1.10, body: 6, warmth: 8, harmonics: 7, air: 2, mix: 8, stereoMid: 0, mode: 'clean' } },
+    { id: 'thick-sweet', name: 'Thick Warm', color: { enabled: true, drive: 3.32, body: 18, warmth: 17, harmonics: 28, air: 9, mix: 30, stereoMid: 28, mode: 'warm' } },
+    { id: 'night-warm', name: 'Night Warm', color: { enabled: true, drive: 0.92, body: 3, warmth: 10, harmonics: 5, air: -10, mix: 12, stereoMid: 0, mode: 'warm' } }
   ],
   width: [
     { id: 'natural-stereo', name: 'Natural Stereo', width: DEFAULT_WIDTH },
-    { id: 'wide-music', name: 'Wide Music', width: { enabled: true, width: 132, lowWidth: 100, lowMidWidth: 104, midWidth: 114, highWidth: 150, sourceProtect: 93, monoBass: true, monoBassFreq: 155, sideTone: 2.4 } },
-    { id: 'ultra-wide-air', name: 'Ultra Wide Air', width: { enabled: true, width: 146, lowWidth: 100, lowMidWidth: 106, midWidth: 120, highWidth: 168, sourceProtect: 96, monoBass: true, monoBassFreq: 180, sideTone: 3.0 } },
-    { id: 'open-air-wide', name: 'Open Air Wide', width: { enabled: true, width: 126, lowWidth: 100, lowMidWidth: 101, midWidth: 108, highWidth: 142, sourceProtect: 94, monoBass: true, monoBassFreq: 190, sideTone: 2.0 } },
-    { id: 'cinema-wide', name: 'Cinema Safe', width: { enabled: true, width: 126, lowWidth: 100, lowMidWidth: 102, midWidth: 110, highWidth: 140, sourceProtect: 95, monoBass: true, monoBassFreq: 165, sideTone: 1.6 } },
+    { id: 'wide-music', name: 'Wide Music', width: { enabled: true, width: 126, lowWidth: 100, lowMidWidth: 102, midWidth: 109, highWidth: 140, sourceProtect: 95, monoBass: true, monoBassFreq: 155, sideTone: 1.45 } },
+    { id: 'ultra-wide-air', name: 'Ultra Wide Air', width: { enabled: true, width: 128, lowWidth: 100, lowMidWidth: 101, midWidth: 108, highWidth: 142, sourceProtect: 98, monoBass: true, monoBassFreq: 185, sideTone: 1.2 } },
+    { id: 'open-air-wide', name: 'Open Air Wide', width: { enabled: true, width: 121, lowWidth: 100, lowMidWidth: 100, midWidth: 105, highWidth: 132, sourceProtect: 96, monoBass: true, monoBassFreq: 190, sideTone: 1.2 } },
+    { id: 'cinema-wide', name: 'Cinema Safe', width: { enabled: true, width: 119, lowWidth: 100, lowMidWidth: 101, midWidth: 105, highWidth: 130, sourceProtect: 96, monoBass: true, monoBassFreq: 165, sideTone: 0.8 } },
     { id: 'vocal-center', name: 'Vocal Center', width: { enabled: false, width: 100, lowWidth: 100, lowMidWidth: 100, midWidth: 100, highWidth: 105, monoBass: true, monoBassFreq: 145, sideTone: 0 } },
-    { id: 'night-narrow', name: 'Night Narrow', width: { enabled: false, width: 98, lowWidth: 100, lowMidWidth: 96, midWidth: 94, highWidth: 100, monoBass: true, monoBassFreq: 140, sideTone: -1 } }
+    { id: 'night-narrow', name: 'Night Narrow', width: { enabled: false, width: 96, lowWidth: 100, lowMidWidth: 96, midWidth: 92, highWidth: 98, sourceProtect: 100, monoBass: true, monoBassFreq: 140, sideTone: -1.4 } }
   ],
   limiter: [
-    { id: 'safe-master', name: 'Safe Master', output: { inputGain: 0, outputGain: -1.5, limiterEnabled: true, limiterCeiling: -1, limiterDrive: 0.4, punchProtect: true } },
-    { id: 'loud-punch', name: 'Loud Punch', output: { inputGain: 0, outputGain: -1.8, limiterEnabled: true, limiterCeiling: -1, limiterDrive: 0.8, punchProtect: true } },
-    { id: 'open-air-guard', name: 'Open Air Guard', output: { inputGain: 0, outputGain: -3.2, limiterEnabled: true, limiterCeiling: -1.2, limiterDrive: 0.72, punchProtect: true } },
-    { id: 'cinema-headroom', name: 'Cinema Clean', output: { inputGain: 0, outputGain: -2.2, limiterEnabled: true, limiterCeiling: -1.1, limiterDrive: 0.28, punchProtect: true } },
-    { id: 'voice-steady', name: 'Voice Steady', output: { inputGain: 0.4, outputGain: -2.2, limiterEnabled: true, limiterCeiling: -1.2, limiterDrive: 0.12, punchProtect: true } },
-    { id: 'night-low', name: 'Night Low', output: { inputGain: -1, outputGain: -5, limiterEnabled: true, limiterCeiling: -1.5, limiterDrive: 0.08, punchProtect: true } }
+    { id: 'safe-master', name: 'Safe Master', output: { inputGain: 0, outputGain: -1.8, limiterEnabled: true, limiterCeiling: -1, limiterDrive: 0.28, punchProtect: true } },
+    { id: 'loud-punch', name: 'Loud Punch', output: { inputGain: 0, outputGain: -2.1, limiterEnabled: true, limiterCeiling: -1, limiterDrive: 0.62, punchProtect: true } },
+    { id: 'open-air-guard', name: 'Open Air Guard', output: { inputGain: 0, outputGain: -3.1, limiterEnabled: true, limiterCeiling: -1.2, limiterDrive: 0.52, punchProtect: true } },
+    { id: 'cinema-headroom', name: 'Cinema Clean', output: { inputGain: 0, outputGain: -2.4, limiterEnabled: true, limiterCeiling: -1.1, limiterDrive: 0.22, punchProtect: true } },
+    { id: 'voice-steady', name: 'Voice Steady', output: { inputGain: 0.2, outputGain: -2.6, limiterEnabled: true, limiterCeiling: -1.2, limiterDrive: 0.07, punchProtect: true } },
+    { id: 'night-low', name: 'Night Low', output: { inputGain: -1.2, outputGain: -5.2, limiterEnabled: true, limiterCeiling: -1.5, limiterDrive: 0.05, punchProtect: true } }
   ]
 };
 

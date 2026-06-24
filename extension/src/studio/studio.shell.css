@@ -193,16 +193,32 @@ button{font:inherit;user-select:none}
 .btn-icon svg{width:14px;height:14px}
 .muted-separator{color:var(--muted-dim);font-weight:400}
 
-/* Master Bypass — cyan means processing active, red means full bypass. */
+/* Master Bypass — cyan/purple glow means processing active, red means full bypass. */
 .master-bypass{
   position:relative;isolation:isolate;
-  color:#7FF8EF;border-color:rgba(101,244,235,.78);
-  background:radial-gradient(circle at 50% 16%,rgba(101,244,235,.22),rgba(101,244,235,.055) 56%,rgba(4,10,14,.92));
-  box-shadow:0 0 0 1px rgba(101,244,235,.16),0 0 18px -7px rgba(101,244,235,.95),inset 0 1px 0 rgba(255,255,255,.12);
-  text-shadow:0 0 12px rgba(101,244,235,.88);
+  color:#93FFF6;border-color:rgba(104,245,238,.88);
+  background:
+    radial-gradient(circle at 28% 12%,rgba(163,107,255,.30),transparent 43%),
+    radial-gradient(circle at 72% 18%,rgba(101,244,235,.26),rgba(101,244,235,.055) 58%,rgba(4,10,14,.92)),
+    linear-gradient(145deg,rgba(72,31,120,.30),rgba(6,19,25,.94));
+  box-shadow:
+    0 0 0 1px rgba(101,244,235,.22),
+    0 0 0 2px rgba(158,106,255,.12),
+    0 0 18px -6px rgba(101,244,235,.95),
+    0 0 24px -12px rgba(164,108,255,.92),
+    inset 0 1px 0 rgba(255,255,255,.14);
+  text-shadow:0 0 10px rgba(101,244,235,.92),0 0 16px rgba(164,108,255,.64);
 }
-.master-bypass:hover{filter:brightness(1.08);border-color:rgba(128,255,247,.95);box-shadow:0 0 0 1px rgba(101,244,235,.22),0 0 24px -6px rgba(101,244,235,1),inset 0 1px 0 rgba(255,255,255,.16)}
-.master-bypass svg{width:14px;height:14px;filter:drop-shadow(0 0 6px rgba(101,244,235,.80))}
+.master-bypass:hover{
+  filter:brightness(1.08);border-color:rgba(137,255,249,.98);
+  box-shadow:
+    0 0 0 1px rgba(101,244,235,.30),
+    0 0 0 2px rgba(164,108,255,.18),
+    0 0 24px -5px rgba(101,244,235,1),
+    0 0 32px -11px rgba(164,108,255,1),
+    inset 0 1px 0 rgba(255,255,255,.18);
+}
+.master-bypass svg{width:14px;height:14px;filter:drop-shadow(0 0 6px rgba(101,244,235,.92)) drop-shadow(0 0 8px rgba(164,108,255,.72))}
 .master-bypass.active{
   color:#FF6868;border-color:rgba(255,86,86,.82);
   background:radial-gradient(circle at 50% 16%,rgba(255,86,86,.24),rgba(255,86,86,.060) 58%,rgba(15,5,8,.92));

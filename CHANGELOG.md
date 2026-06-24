@@ -4,7 +4,10 @@
 
 - Added a coherent Mid-center sweet anchor under the real-side Stereo Mid exciter so Max Enhancer keeps a solid vocal/snare/instrument core while the side detail stays lively.
 - Retuned Stereo Mid to be side-plus-center smart processing: real Side still cancels in mono, while the new Mid anchor returns equally to L/R and avoids hollow/phasey imaging.
+- Added resonance-safe Max Enhancer tuning: broad sweet-zone filters, dynamic resonance guard, cleaner 200-300 Hz body support, and reduced narrow mid/high excitation.
 - Updated factory and module presets for the new engine with safer source protection, less aggressive synthetic width, explicit Stereo Mid values, and voice/night presets kept center-safe.
+- Re-audited all factory/module presets for context-correct dopamine: Max Enhancer is fuller but resonance-safe, Punchy/Open Air are less peaky, Movie/Podcast are dialogue-safe, and Night is warmer/softer for long listening.
+- Updated the Studio master bypass icon with active cyan-purple glow and red bypass state.
 
 ## 0.3.42 - Clickless warm bypass crossfade
 

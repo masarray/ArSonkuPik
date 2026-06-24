@@ -547,10 +547,10 @@ class AudioEnhancerEngine {
     c.sideMidLowpass.Q.value = 0.707;
     c.sideMidPresence.type = 'peaking';
     c.sideMidPresence.frequency.value = 2600;
-    c.sideMidPresence.Q.value = 0.9;
+    c.sideMidPresence.Q.value = 0.72;
     c.sideMidTone.type = 'peaking';
     c.sideMidTone.frequency.value = 3800;
-    c.sideMidTone.Q.value = 1.0;
+    c.sideMidTone.Q.value = 0.72;
     c.sideMidShaper.oversample = '2x';
     c.sideMidWet.gain.value = 0;
 
@@ -564,10 +564,10 @@ class AudioEnhancerEngine {
     c.midAnchorLowpass.Q.value = 0.707;
     c.midAnchorFocus.type = 'peaking';
     c.midAnchorFocus.frequency.value = 1850;
-    c.midAnchorFocus.Q.value = 0.76;
+    c.midAnchorFocus.Q.value = 0.56;
     c.midAnchorTone.type = 'peaking';
     c.midAnchorTone.frequency.value = 3150;
-    c.midAnchorTone.Q.value = 0.86;
+    c.midAnchorTone.Q.value = 0.58;
     c.midAnchorShaper.oversample = '2x';
     c.midAnchorWet.gain.value = 0;
     c.midAnchorToL.gain.value = 1;
@@ -579,14 +579,14 @@ class AudioEnhancerEngine {
     c.lowBodyHighpass.frequency.value = 138;
     c.lowBodyHighpass.Q.value = 0.707;
     c.lowBodyLowpass.type = 'lowpass';
-    c.lowBodyLowpass.frequency.value = 430;
+    c.lowBodyLowpass.frequency.value = 365;
     c.lowBodyLowpass.Q.value = 0.707;
     c.lowBodyFocus.type = 'peaking';
     c.lowBodyFocus.frequency.value = 255;
-    c.lowBodyFocus.Q.value = 0.74;
+    c.lowBodyFocus.Q.value = 0.46;
     c.lowBodyMudGuard.type = 'peaking';
     c.lowBodyMudGuard.frequency.value = 385;
-    c.lowBodyMudGuard.Q.value = 0.92;
+    c.lowBodyMudGuard.Q.value = 0.62;
     c.lowBodyShaper.oversample = '2x';
     c.lowBodyWet.gain.value = 0;
     c.lowBodyToL.gain.value = 1;
@@ -1089,8 +1089,6 @@ class AudioEnhancerEngine {
       .connect(c.lowBodyLowpass)
       .connect(c.lowBodyFocus)
       .connect(c.lowBodyMudGuard)
-      .connect(c.lowBodyDrive)
-      .connect(c.lowBodyShaper)
       .connect(c.lowBodyWet);
     c.lowBodyWet.connect(c.lowBodyToL).connect(c.sideMerger, 0, 0);
     c.lowBodyWet.connect(c.lowBodyToR).connect(c.sideMerger, 0, 1);
@@ -1282,55 +1280,55 @@ class AudioEnhancerEngine {
     // source actually has, so mono material is left alone and rich stereo gets
     // pushed harder. Frequencies + curve are set here, gains via applySideMidGains.
     const stereoMidAmt = clamp01((Number(color.stereoMid) || 0) / 100);
-    const midSideDriveDb = (voiceSafe ? 1.08 : 3.72) * stereoMidAmt + harmonicAmount * 1.82 * stereoMidAmt;
+    const midSideDriveDb = (voiceSafe ? 0.82 : 2.65) * stereoMidAmt + harmonicAmount * 1.16 * stereoMidAmt;
     c.sideMidHighpass.frequency.setTargetAtTime(220, now, ramp);
-    c.sideMidLowpass.frequency.setTargetAtTime(4700 + harmonicAmount * 600, now, ramp);
-    c.sideMidPresence.frequency.setTargetAtTime(2200 + harmonicAmount * 320, now, ramp);
-    c.sideMidTone.frequency.setTargetAtTime(3500, now, ramp);
-    c.sideMidShaper.curve = makePresenceExciterCurve(2.2 + midSideDriveDb, color.mode);
+    c.sideMidLowpass.frequency.setTargetAtTime(4300 + harmonicAmount * 360, now, ramp);
+    c.sideMidPresence.frequency.setTargetAtTime(2300 + harmonicAmount * 180, now, ramp);
+    c.sideMidTone.frequency.setTargetAtTime(3450, now, ramp);
+    c.sideMidShaper.curve = makePresenceExciterCurve(1.35 + midSideDriveDb, color.mode);
     this.sideMidBase = {
-      presence: stereoMidAmt * (voiceSafe ? 1.22 : 3.68),
-      tone: stereoMidAmt * (voiceSafe ? 0.62 : 1.96),
+      presence: stereoMidAmt * (voiceSafe ? 0.92 : 2.55),
+      tone: stereoMidAmt * (voiceSafe ? 0.42 : 1.20),
       driveDb: midSideDriveDb,
-      wet: clamp(stereoMidAmt * (voiceSafe ? 0.066 : 0.53) * (0.56 + 0.44 * mix), 0, 0.64)
+      wet: clamp(stereoMidAmt * (voiceSafe ? 0.048 : 0.36) * (0.56 + 0.44 * mix), 0, 0.44)
     };
 
     // Mid-center sweet anchor uses the same Stereo Mid intent but returns a
     // coherent +Mid/+Mid layer. It is deliberately lower, broader and smoother
     // than the side exciter, so vocals/snare/guitar/piano stand forward without
     // the floating phasey image that happens when side is excited alone.
-    const centerDriveDb = (voiceSafe ? 0.86 : 2.82) * stereoMidAmt + harmonicAmount * (voiceSafe ? 0.42 : 1.22) * stereoMidAmt + Math.max(0, warmthAmount) * 0.38;
-    c.midAnchorHighpass.frequency.setTargetAtTime(660 + Math.max(0, warmthAmount) * 90, now, ramp);
-    c.midAnchorLowpass.frequency.setTargetAtTime(4300 + harmonicAmount * 420, now, ramp);
+    const centerDriveDb = (voiceSafe ? 0.66 : 1.92) * stereoMidAmt + harmonicAmount * (voiceSafe ? 0.28 : 0.72) * stereoMidAmt + Math.max(0, warmthAmount) * 0.24;
+    c.midAnchorHighpass.frequency.setTargetAtTime(720 + Math.max(0, warmthAmount) * 60, now, ramp);
+    c.midAnchorLowpass.frequency.setTargetAtTime(3900 + harmonicAmount * 260, now, ramp);
     c.midAnchorFocus.frequency.setTargetAtTime(color.mode === 'warm' ? 1650 : color.mode === 'modern' ? 2050 : 1850, now, ramp);
-    c.midAnchorFocus.Q.setTargetAtTime(0.62 + harmonicAmount * 0.12, now, ramp);
+    c.midAnchorFocus.Q.setTargetAtTime(0.50 + harmonicAmount * 0.06, now, ramp);
     c.midAnchorTone.frequency.setTargetAtTime(3000 + positiveAir * 9 + harmonicAmount * 180, now, ramp);
-    c.midAnchorTone.Q.setTargetAtTime(0.78, now, ramp);
-    c.midAnchorShaper.curve = makeMidAnchorCurve(1.4 + centerDriveDb, color.mode);
+    c.midAnchorTone.Q.setTargetAtTime(0.56, now, ramp);
+    c.midAnchorShaper.curve = makeMidAnchorCurve(0.85 + centerDriveDb, color.mode);
     this.midAnchorBase = {
-      peak: stereoMidAmt * (voiceSafe ? 0.62 : 2.48) + Math.max(0, color.warmth) * 0.018 + harmonicAmount * (voiceSafe ? 0.11 : 0.38),
-      tone: stereoMidAmt * (voiceSafe ? 0.14 : 0.64) + positiveAir * 0.0035,
+      peak: stereoMidAmt * (voiceSafe ? 0.44 : 1.55) + Math.max(0, color.warmth) * 0.010 + harmonicAmount * (voiceSafe ? 0.07 : 0.20),
+      tone: stereoMidAmt * (voiceSafe ? 0.08 : 0.34) + positiveAir * 0.0020,
       driveDb: centerDriveDb,
-      wet: clamp(stereoMidAmt * (voiceSafe ? 0.032 : 0.215) * (0.58 + 0.42 * mix), 0, voiceSafe ? 0.052 : 0.26)
+      wet: clamp(stereoMidAmt * (voiceSafe ? 0.024 : 0.135) * (0.58 + 0.42 * mix), 0, voiceSafe ? 0.040 : 0.165)
     };
 
     // Low-mid body anchor: fills the 200-300 Hz support under the standout mid.
     // This is intentionally centered and smart-limited so it thickens vocal/body
     // without dragging the whole mix into the 330-520 Hz mud zone.
-    const lowBodyIntent = clamp01(stereoMidAmt * 0.42 + Math.max(0, color.body) * 0.012 + Math.max(0, color.warmth) * 0.010 + harmonicAmount * 0.070);
-    const lowBodyDriveDb = (voiceSafe ? 0.52 : 1.58) * lowBodyIntent + Math.max(0, color.body) * 0.022 + Math.max(0, color.warmth) * 0.016;
-    c.lowBodyHighpass.frequency.setTargetAtTime(132 + Math.max(0, bodyAmount) * 18, now, ramp);
-    c.lowBodyLowpass.frequency.setTargetAtTime(415 + harmonicAmount * 36, now, ramp);
-    c.lowBodyFocus.frequency.setTargetAtTime(252, now, ramp);
-    c.lowBodyFocus.Q.setTargetAtTime(0.66, now, ramp);
+    const lowBodyIntent = clamp01(stereoMidAmt * 0.26 + Math.max(0, color.body) * 0.007 + Math.max(0, color.warmth) * 0.006 + harmonicAmount * 0.032);
+    const lowBodyDriveDb = (voiceSafe ? 0.18 : 0.48) * lowBodyIntent + Math.max(0, color.body) * 0.006 + Math.max(0, color.warmth) * 0.005;
+    c.lowBodyHighpass.frequency.setTargetAtTime(150 + Math.max(0, bodyAmount) * 10, now, ramp);
+    c.lowBodyLowpass.frequency.setTargetAtTime(360 + harmonicAmount * 22, now, ramp);
+    c.lowBodyFocus.frequency.setTargetAtTime(245, now, ramp);
+    c.lowBodyFocus.Q.setTargetAtTime(0.42, now, ramp);
     c.lowBodyMudGuard.frequency.setTargetAtTime(385, now, ramp);
-    c.lowBodyMudGuard.Q.setTargetAtTime(0.86, now, ramp);
-    c.lowBodyShaper.curve = makeAnalogWarmCurve(1.0 + lowBodyDriveDb, color.mode);
+    c.lowBodyMudGuard.Q.setTargetAtTime(0.62, now, ramp);
+    c.lowBodyShaper.curve = makeLinearCurve();
     this.lowMidBodyBase = {
-      focus: lowBodyIntent * (voiceSafe ? 0.24 : 1.22) + Math.max(0, color.body) * (voiceSafe ? 0.004 : 0.014),
-      mudTrim: lowBodyIntent * (voiceSafe ? 0.03 : 0.10),
+      focus: lowBodyIntent * (voiceSafe ? 0.12 : 0.46) + Math.max(0, color.body) * (voiceSafe ? 0.002 : 0.0045),
+      mudTrim: lowBodyIntent * (voiceSafe ? 0.045 : 0.16),
       driveDb: lowBodyDriveDb,
-      wet: clamp(lowBodyIntent * (voiceSafe ? 0.018 : 0.142) * (0.58 + 0.42 * mix), 0, voiceSafe ? 0.034 : 0.19)
+      wet: clamp(lowBodyIntent * (voiceSafe ? 0.010 : 0.052) * (0.58 + 0.42 * mix), 0, voiceSafe ? 0.020 : 0.072)
     };
     this.applySideMidGains(now, ramp);
 
@@ -1593,14 +1591,15 @@ class AudioEnhancerEngine {
     const lowBodyBoost = clamp(toneMap.lowBodyBoost ?? 1, 0.88, 1.28);
     const mudGuard = clamp(toneMap.mudGuard ?? 0, 0, 1);
     const harshGuard = clamp(toneMap.harshGuard ?? 0, 0, 1);
-    const safeSide = sideExcite * (1 - harshGuard * 0.28);
+    const resonanceGuard = clamp(toneMap.resonanceGuard ?? 0, 0, 1);
+    const safeSide = sideExcite * (1 - harshGuard * 0.28) * (1 - resonanceGuard * 0.38);
 
     c.sideMidPresence.frequency.setTargetAtTime(clamp(toneMap.sideFocusHz ?? 2380, 1850, 3150), now, ramp * 1.7);
     c.sideMidTone.frequency.setTargetAtTime(clamp(toneMap.tickleToneHz ?? 3600, 2850, 4550), now, ramp * 1.7);
     c.sideMidPresence.gain.setTargetAtTime(b.presence * f * safeSide, now, ramp);
     c.sideMidTone.gain.setTargetAtTime(b.tone * f * safeSide * (1 - harshGuard * 0.18), now, ramp);
     c.sideMidDrive.gain.setTargetAtTime(dbToGain(b.driveDb * (0.58 + 0.42 * f) * (0.96 + safeSide * 0.04)), now, ramp);
-    c.sideMidWet.gain.setTargetAtTime(clamp(b.wet * f * safeSide, 0, 0.68), now, ramp);
+    c.sideMidWet.gain.setTargetAtTime(clamp(b.wet * f * safeSide, 0, 0.42), now, ramp);
 
     // Keep a coherent center anchor under the side movement. It follows the same
     // smart factor but is never anti-phase; it is equal energy in L/R. The smart
@@ -1608,27 +1607,27 @@ class AudioEnhancerEngine {
     // glue only when the source feels thin.
     if (c.midAnchorWet) {
       const a = this.midAnchorBase || { peak: 0, tone: 0, driveDb: 0, wet: 0 };
-      const anchorFactor = clamp(0.54 + f * 0.50, 0, 1.24) * anchorExcite;
+      const anchorFactor = clamp(0.48 + f * 0.42, 0, 1.05) * anchorExcite * (1 - resonanceGuard * 0.30);
       c.midAnchorHighpass.frequency.setTargetAtTime(clamp(toneMap.anchorLowHz ?? 620, 520, 820), now, ramp * 1.8);
       c.midAnchorFocus.frequency.setTargetAtTime(clamp(toneMap.anchorFocusHz ?? 2050, 1450, 2650), now, ramp * 1.8);
       c.midAnchorTone.frequency.setTargetAtTime(clamp(toneMap.anchorToneHz ?? 3180, 2450, 3900), now, ramp * 1.8);
       c.midAnchorFocus.gain.setTargetAtTime(a.peak * anchorFactor * lowMidGlue, now, ramp);
       c.midAnchorTone.gain.setTargetAtTime(a.tone * anchorFactor * (1 - harshGuard * 0.12), now, ramp);
       c.midAnchorDrive.gain.setTargetAtTime(dbToGain(a.driveDb * (0.70 + anchorFactor * 0.28)), now, ramp);
-      c.midAnchorWet.gain.setTargetAtTime(clamp(a.wet * anchorFactor * lowMidGlue, 0, 0.285), now, ramp);
+      c.midAnchorWet.gain.setTargetAtTime(clamp(a.wet * anchorFactor * lowMidGlue, 0, 0.17), now, ramp);
     }
 
     if (c.lowBodyWet) {
       const lb = this.lowMidBodyBase || { focus: 0, mudTrim: 0, driveDb: 0, wet: 0 };
-      const bodyFactor = clamp(0.58 + f * 0.44, 0, 1.28) * lowBodyBoost;
+      const bodyFactor = clamp(0.48 + f * 0.34, 0, 0.96) * lowBodyBoost * (1 - resonanceGuard * 0.45);
       c.lowBodyHighpass.frequency.setTargetAtTime(clamp((toneMap.lowBodyHz ?? 255) - 118, 118, 178), now, ramp * 1.8);
-      c.lowBodyLowpass.frequency.setTargetAtTime(clamp((toneMap.mudGuardHz ?? 385) + 70, 390, 520), now, ramp * 1.8);
+      c.lowBodyLowpass.frequency.setTargetAtTime(clamp((toneMap.mudGuardHz ?? 385) + 35, 345, 440), now, ramp * 1.8);
       c.lowBodyFocus.frequency.setTargetAtTime(clamp(toneMap.lowBodyHz ?? 255, 210, 315), now, ramp * 1.8);
       c.lowBodyMudGuard.frequency.setTargetAtTime(clamp(toneMap.mudGuardHz ?? 385, 330, 520), now, ramp * 1.8);
-      c.lowBodyFocus.gain.setTargetAtTime(lb.focus * bodyFactor * (1 - mudGuard * 0.18), now, ramp);
-      c.lowBodyMudGuard.gain.setTargetAtTime(-Math.abs(lb.mudTrim + mudGuard * 0.42) * clamp(bodyFactor, 0.7, 1.22), now, ramp);
+      c.lowBodyFocus.gain.setTargetAtTime(lb.focus * bodyFactor * (1 - mudGuard * 0.30), now, ramp);
+      c.lowBodyMudGuard.gain.setTargetAtTime(-Math.abs(lb.mudTrim + mudGuard * 0.55 + resonanceGuard * 0.55) * clamp(bodyFactor, 0.55, 1.0), now, ramp);
       c.lowBodyDrive.gain.setTargetAtTime(dbToGain(lb.driveDb * (0.68 + bodyFactor * 0.24) * (1 - mudGuard * 0.06)), now, ramp);
-      c.lowBodyWet.gain.setTargetAtTime(clamp(lb.wet * bodyFactor * (1 - mudGuard * 0.10), 0, 0.205), now, ramp);
+      c.lowBodyWet.gain.setTargetAtTime(clamp(lb.wet * bodyFactor * (1 - mudGuard * 0.22), 0, 0.074), now, ramp);
     }
   }
 
@@ -1821,6 +1820,7 @@ function createDefaultDopamineToneMap() {
     anchorExcite: 1,
     sideExcite: 1,
     harshGuard: 0,
+    resonanceGuard: 0,
     anchorLowHz: 620,
     anchorFocusHz: 2050,
     anchorToneHz: 3180,
@@ -1862,6 +1862,23 @@ function analyseDopamineToneMap(freqData, sampleRate, fftSize) {
     }
     return weight > 1e-12 ? sum / weight : fallback;
   };
+  const spectralCrest = (lo, hi) => {
+    const a = clampBin(lo);
+    const b = Math.max(a, clampBin(Math.min(hi, nyquist - 10)));
+    let sum = 0;
+    let max = 0;
+    let n = 0;
+    for (let i = a; i <= b; i += 1) {
+      const db = Number(freqData[i]);
+      if (!Number.isFinite(db)) continue;
+      const p = Math.pow(10, db / 10);
+      sum += p;
+      if (p > max) max = p;
+      n += 1;
+    }
+    const avg = n ? sum / n : 1e-12;
+    return clamp(linearToDb(max / Math.max(avg, 1e-12)) / 18, 0, 1);
+  };
 
   const broad = Math.max(bandPower(180, 7600), 1e-12);
   const punch = bandPower(160, 320) / broad;
@@ -1881,22 +1898,44 @@ function analyseDopamineToneMap(freqData, sampleRate, fftSize) {
   const tickleReady = clamp((vocal * 0.55 + tickle * 0.65 - 0.20) / 0.62, 0, 1);
   const harshGuard = clamp((harsh - 0.34) / 0.46, 0, 1);
   const bodyHeavy = clamp((punch + lowMid + mudBox * 0.7 - 1.08) / 0.86, 0, 1);
+  const resonanceGuard = Math.max(
+    spectralCrest(200, 520),
+    spectralCrest(1450, 2850),
+    spectralCrest(2850, 4700),
+    spectralCrest(5200, 7800)
+  );
 
+  // Do not chase the hottest partial. The previous smart map moved boost filters
+  // directly onto dominant peaks; with Max Enhancer that could turn a vocal/nasal
+  // or guitar partial into an obvious resonance. These are broad musical sweet
+  // zones, with the resonance guard reducing boost when the source is already
+  // narrow/peaky.
   return {
-    lowMidGlue: clamp(1.00 + lowMidNeed * 0.09 + bodyNeed * 0.08 - bodyHeavy * 0.055 - mudGuard * 0.025, 0.90, 1.19),
-    lowBodyBoost: clamp(1.02 + bodyNeed * 0.18 + vocalNeed * 0.06 - mudGuard * 0.11 - bodyHeavy * 0.05, 0.90, 1.26),
-    mudGuard,
-    lowBodyHz: clamp(weightedFreq(200, 310, 255), 215, 308),
-    mudGuardHz: clamp(weightedFreq(330, 520, 385), 345, 485),
-    anchorExcite: clamp(1.03 + vocalNeed * 0.16 + centerNeed * 0.10 - harshGuard * 0.10, 0.88, 1.30),
-    sideExcite: clamp(1.02 + tickleReady * 0.18 + vocalNeed * 0.05 - harshGuard * 0.22, 0.76, 1.24),
-    harshGuard,
-    anchorLowHz: clamp(560 + lowMidNeed * 90 + bodyHeavy * 70, 520, 780),
-    anchorFocusHz: clamp(weightedFreq(1450, 2750, 2050), 1550, 2550),
-    anchorToneHz: clamp(weightedFreq(2450, 3900, 3180), 2600, 3800),
-    sideFocusHz: clamp(weightedFreq(1850, 3300, 2380), 1950, 3050),
-    tickleToneHz: clamp(weightedFreq(3000, 4700, 3600), 3150, 4450)
+    lowMidGlue: clamp(1.00 + lowMidNeed * 0.060 + bodyNeed * 0.055 - bodyHeavy * 0.070 - mudGuard * 0.050 - resonanceGuard * 0.055, 0.90, 1.12),
+    lowBodyBoost: clamp(1.00 + bodyNeed * 0.115 + vocalNeed * 0.030 - mudGuard * 0.150 - bodyHeavy * 0.070 - resonanceGuard * 0.115, 0.88, 1.13),
+    mudGuard: clamp(Math.max(mudGuard, resonanceGuard * 0.72), 0, 1),
+    lowBodyHz: clamp(238 + bodyNeed * 22 - mudGuard * 12, 225, 275),
+    mudGuardHz: clamp(weightedFreq(330, 520, 385), 350, 465),
+    anchorExcite: clamp(1.00 + vocalNeed * 0.090 + centerNeed * 0.055 - harshGuard * 0.130 - resonanceGuard * 0.135, 0.84, 1.12),
+    sideExcite: clamp(1.00 + tickleReady * 0.095 + vocalNeed * 0.030 - harshGuard * 0.255 - resonanceGuard * 0.210, 0.70, 1.11),
+    harshGuard: clamp(Math.max(harshGuard, resonanceGuard * 0.42), 0, 1),
+    resonanceGuard,
+    anchorLowHz: clamp(680 + bodyHeavy * 45 - lowMidNeed * 35, 620, 760),
+    anchorFocusHz: clamp(1840 + vocalNeed * 170 - harshGuard * 80, 1700, 2220),
+    anchorToneHz: clamp(2950 + tickleReady * 140 - harshGuard * 190, 2700, 3300),
+    sideFocusHz: clamp(2300 + tickleReady * 120 - resonanceGuard * 110, 2100, 2600),
+    tickleToneHz: clamp(3450 + tickleReady * 210 - harshGuard * 260 - resonanceGuard * 180, 3150, 3800)
   };
+}
+
+
+function makeLinearCurve() {
+  const samples = 256;
+  const curve = new Float32Array(samples);
+  for (let i = 0; i < samples; i += 1) {
+    curve[i] = (i / (samples - 1)) * 2 - 1;
+  }
+  return curve;
 }
 
 function makeSaturationCurve(driveDb = 3, mode = 'clean') {
