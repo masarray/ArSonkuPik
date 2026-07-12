@@ -1,0 +1,10 @@
+{
+  "product": "ArSonKuPik VST",
+  "latest_version": "0.5.5",
+  "channel": "stable",
+  "release_date": "2026-07-12",
+  "download_url": "https://masarray.github.io/ArSonkuPik/vst/",
+  "release_notes_url": "https://masarray.github.io/ArSonkuPik/vst/#release-notes",
+  "minimum_supported_version": "0.5.4",
+  "message": "Dual-engine preset transition stability update."
+}
