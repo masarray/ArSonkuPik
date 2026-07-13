@@ -1,10 +1,10 @@
 {
   "product": "ArSonKuPik VST",
-  "latest_version": "0.5.5",
-  "channel": "stable",
-  "release_date": "2026-07-12",
+  "latest_version": "0.5.6",
+  "channel": "public-beta",
+  "release_date": "2026-07-13",
   "download_url": "https://masarray.github.io/ArSonkuPik/vst/",
   "release_notes_url": "https://masarray.github.io/ArSonkuPik/vst/#release-notes",
   "minimum_supported_version": "0.5.4",
-  "message": "Dual-engine preset transition stability update."
+  "message": "Public Beta v0.5.6: stabilized Mas Ari Signature and SonKu Deep Chest, added Dangdut Koplo, flat idle sphere, Unicode-safe About card, and refined black-glass UI."
 }
