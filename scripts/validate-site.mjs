@@ -35,6 +35,18 @@ for (const htmlFile of walk(site).filter((file) => file.endsWith('.html'))) {
   }
 }
 
+const legacyVstPage = fs.readFileSync(path.join(site, 'vst', 'index.html'), 'utf8');
+const officialVstLandingPage = 'https://masarray.github.io/vst-enhancer/';
+if (!legacyVstPage.includes(`rel="canonical" href="${officialVstLandingPage}"`)) {
+  fail.push('Legacy /vst/ page must declare the official vst-enhancer landing page as canonical.');
+}
+if (!legacyVstPage.includes(`location.replace(destination)`)) {
+  fail.push('Legacy /vst/ page must redirect existing application installs to vst-enhancer.');
+}
+if (!legacyVstPage.includes('https://github.com/masarray/vst-enhancer/releases/latest')) {
+  fail.push('Legacy /vst/ page must retain a direct latest-release fallback.');
+}
+
 if (fail.length) {
   console.error('Site validation failed:');
   for (const message of fail) console.error(`  - ${message}`);
