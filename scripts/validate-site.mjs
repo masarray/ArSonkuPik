@@ -18,6 +18,13 @@ function walk(dir) {
 
 for (const htmlFile of walk(site).filter((file) => file.endsWith('.html'))) {
   const html = fs.readFileSync(htmlFile, 'utf8');
+  // Google's verification token intentionally has no HTML document metadata.
+  if (path.relative(site, htmlFile) === 'googlec34c43149eef6100.html') {
+    if (html.trim() !== 'google-site-verification: googlec34c43149eef6100.html') {
+      fail.push(`${htmlFile} does not contain the expected Google verification token.`);
+    }
+    continue;
+  }
   if (!/<title>[^<]+<\/title>/.test(html)) fail.push(`${htmlFile} is missing a title.`);
   if (!/name="description"/.test(html)) fail.push(`${htmlFile} is missing meta description.`);
   for (const match of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
