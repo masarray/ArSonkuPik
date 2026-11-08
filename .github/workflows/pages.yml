@@ -8,6 +8,7 @@ on:
       - "privacy/**"
       - "support/**"
       - "index.html"
+      - "scripts/validate-site.mjs"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
